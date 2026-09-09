@@ -1,0 +1,145 @@
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Обертка строки для выравнивания */
+.chat-messages__wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.chat-messages__wrapper--own {
+  justify-content: flex-end;
+}
+
+/* Баббл сообщения (Новый блок) */
+.chat-message {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 65%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 2px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.chat-message--own {
+  background: #3a4b5c;
+  border-radius: var(--radius-lg) var(--radius-lg) 2px var(--radius-lg);
+}
+
+.chat-message__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-message__sender {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+
+.chat-message--own .chat-message__sender {
+  color: var(--accent-yellow);
+}
+
+.chat-message__text {
+  word-break: break-word;
+  color: var(--text-main);
+}
+
+/* Кнопка ответа при наведении */
+.chat-message__reply-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -36px;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-input);
+  color: var(--text-muted);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.chat-messages__wrapper--own .chat-message__reply-btn {
+  right: auto;
+  left: -36px;
+}
+
+.chat-message:hover .chat-message__reply-btn {
+  opacity: 1;
+}
+
+.chat-message__reply-btn:hover {
+  color: var(--accent-blue);
+  background: var(--bg-input-focus);
+}
+
+/* Блок цитаты сверху внутри сообщения */
+.chat-message__reply {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.chat-message--own .chat-message__reply {
+  border-left-color: var(--accent-yellow);
+}
+
+.chat-message__reply-sender {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.chat-message__reply-text {
+  font-size: 0.65rem;
+  color: var(--text-main);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Скроллбар */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--bg-input);
+  border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-input-focus);
+}

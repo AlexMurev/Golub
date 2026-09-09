@@ -1,0 +1,44 @@
+.chat-reply-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  border-left: 4px solid var(--accent-blue);
+}
+
+.chat-reply-preview__content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-reply-preview__sender {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+
+.chat-reply-preview__text {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chat-reply-preview__cancel {
+  background: none;
+  border: none;
+  color: var(--text-placeholder);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  transition: color var(--transition-fast);
+}
+
+.chat-reply-preview__cancel:hover {
+  color: var(--accent-red);
+}

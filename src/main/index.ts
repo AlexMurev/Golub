@@ -2,20 +2,64 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
+import { WebSocketServer } from 'ws';
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 850,
+    height: 900,
     minHeight: 300,
     minWidth: 300,
+    maxWidth: 850,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
+    }
+  });
+
+  let wss: WebSocketServer | null = null;
+
+  ipcMain.handle('start-server', async (_event, port: number) => {
+    try {
+      if (wss) {
+        // Если сервер уже запущен, закрываем его
+        wss.close();
+        wss = null;
+      }
+      wss = new WebSocketServer({ port });
+      console.log(`WebSocket сервер запущен на порту ${port}`);
+
+      wss.on('connection', (ws) => {
+        console.log('Новый клиент подключился');
+
+        ws.on('message', (message) => {
+          try {
+            // Парсим как JSON, чтобы сохранить структуру
+            const data = JSON.parse(message.toString());
+            // Рассылаем всем, кроме отправителя
+            wss?.clients.forEach((client) => {
+              if (client !== ws && client.readyState === 1) {
+                client.send(JSON.stringify(data));
+              }
+            });
+          } catch (error) {
+            console.error('Ошибка парсинга сообщения:', error);
+          }
+        });
+
+        ws.on('close', () => {
+          console.log('Клиент отключился');
+        });
+      });
+
+      return { success: true, port };
+    } catch (error) {
+      console.error('Ошибка запуска сервера:', error);
+      return { success: false, error: String(error) };
     }
   });
 

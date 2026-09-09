@@ -1,0 +1,48 @@
+:root {
+  /* Базовые цвета (Catppuccin Mocha) */
+  --bg-main: #1e1e2e;
+  --bg-surface: #313244;
+  --bg-input: #45475a;
+  --bg-input-focus: #585b70;
+  
+  /* Текст */
+  --text-main: #cdd6f4;
+  --text-muted: #a6adc8;
+  --text-placeholder: #6c7086;
+  
+  /* Цветовые акценты */
+  --accent-blue: #89b4fa;
+  --accent-green: #a6e3a1;
+  --accent-yellow: #f9e2af;
+  --accent-red: #f38ba8;
+  
+  /* Интерактивные цвета кнопок при наведении */
+  --btn-primary-hover: #b4cdfa;
+  --btn-danger-hover: #f5a8bf;
+  --btn-send-hover: #b8edb4;
+  
+  /* Разметка и скругления */
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --transition-fast: 0.2s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 26px; 
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
+  background: var(--bg-main);
+  color: var(--text-main);
+  overflow: hidden;
+}
