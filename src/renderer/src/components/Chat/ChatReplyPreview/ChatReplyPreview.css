@@ -2,11 +2,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-surface);
+  background: var(--bg-primary); /* Выделяющаяся плашка над вводом */
   padding: 8px 14px;
   border-radius: var(--radius-md);
   margin-bottom: 8px;
-  border-left: 4px solid var(--accent-blue);
+  border-left: 4px solid var(--accent-primary);
 }
 
 .chat-reply-preview__content {
@@ -18,12 +18,12 @@
 .chat-reply-preview__sender {
   font-size: 0.6rem;
   font-weight: 700;
-  color: var(--accent-blue);
+  color: var(--accent-primary);
 }
 
 .chat-reply-preview__text {
   font-size: 0.65rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -32,7 +32,7 @@
 .chat-reply-preview__cancel {
   background: none;
   border: none;
-  color: var(--text-placeholder);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.8rem;
   padding: 4px;
@@ -40,5 +40,5 @@
 }
 
 .chat-reply-preview__cancel:hover {
-  color: var(--accent-red);
+  color: var(--accent-danger);
 }

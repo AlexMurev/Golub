@@ -1,8 +1,7 @@
 .chat {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  margin: 0 auto;
-  padding: 16px;
-  box-sizing: border-box;
+  height: 100%;
+  padding: 0 16px 16px 16px; /* Оставляем чистые отступы для контента внутри окна чата */
+  background: var(--bg-main);
 }

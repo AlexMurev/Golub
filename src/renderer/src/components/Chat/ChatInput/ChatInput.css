@@ -2,7 +2,7 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  background: var(--bg-input);
+  background: var(--bg-tertiary); /* Третичный фон для полей ввода */
   border-radius: var(--radius-lg);
   padding: 4px;
   min-height: 48px; 
@@ -10,7 +10,7 @@
 }
 
 .chat-input-area--focused {
-  background: var(--bg-input-focus);
+  background: var(--bg-elevated); /* Подсветка при фокусе */
 }
 
 .chat-input-area--disabled {
@@ -22,13 +22,13 @@
   padding: 10px 14px;
   border: none;
   background: transparent;
-  color: var(--text-main);
+  color: var(--text-primary);
   font-size: 0.75rem;
   outline: none;
 }
 
 .chat-input-area__message::placeholder {
-  color: var(--text-placeholder);
+  color: var(--text-muted);
 }
 
 .chat-input-area__button-send {
@@ -40,14 +40,14 @@
   flex-shrink: 0;
   border: none;
   border-radius: var(--radius-lg);
-  background: var(--accent-blue);
+  background: var(--accent-success); /* Зеленый цвет для успешного действия / отправки */
   color: #ffffff;
   cursor: pointer;
   transition: background var(--transition-fast), transform 0.1s;
 }
 
 .chat-input-area__button-send:hover:not(:disabled) {
-  background: var(--btn-primary-hover);
+  background: var(--accent-success-hover);
 }
 
 .chat-input-area__button-send:active:not(:disabled) {
@@ -56,6 +56,6 @@
 
 .chat-input-area__button-send:disabled {
   background: transparent;
-  color: var(--text-placeholder);
+  color: var(--text-muted);
   cursor: not-allowed;
 }

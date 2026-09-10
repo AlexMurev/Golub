@@ -1,0 +1,78 @@
+.user-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg-deep); /* Самый нижний/темный слой подвала сайдбара */
+  height: 52px;
+}
+
+.user-bar__profile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-bar__nickname {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-bar__status {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.user-bar__status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Статусы используют семантические акценты */
+.user-bar__status--connected-host::before { 
+  background: var(--accent-primary); 
+}
+.user-bar__status--connected-client::before { 
+  background: var(--accent-success); 
+}
+.user-bar__status--disconnected::before { 
+  background: var(--accent-danger); 
+}
+
+.user-bar__settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.user-bar__settings:hover {
+  background: var(--bg-tertiary); /* Поднимаем до базового слоя кнопок */
+  color: var(--text-primary);
+}
+
+.user-bar__settings:active {
+  background: var(--bg-elevated); /* Максимальный слой при клике */
+}

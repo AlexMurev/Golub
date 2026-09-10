@@ -1,0 +1,40 @@
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-secondary); /* Вторичный фон: главное окно чата */
+  overflow: hidden;
+}
+
+.sidebar-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary); /* Первичный фон: боковые панели */
+}
+
+.sidebar__contacts {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-resizer {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  transition: background var(--transition-fast);
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer[data-resize-handle-state="drag"] {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.chat-panel {
+  background: var(--bg-secondary);
+}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChatHeader } from './ChatHeader/ChatHeader';
 import { ChatMessages } from './ChatMessages/ChatMessages';
 import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
 import { ChatInput } from './ChatInput/ChatInput';
+import { ChatTopBar } from './ChatTopBar/ChatTopBar';
 import './Chat.css';
 
 export interface Message {
@@ -37,16 +37,14 @@ interface ChatProps {
 const Chat: React.FC<ChatProps> = ({
   messages,
   myId,
-  nickname,
   input,
   setInput,
   sendMessage,
   isServerRunning,
   isConnected,
   replyTo,
-  setReplyTo,
-  onOpenSettings
-}) => {
+  setReplyTo
+}): React.JSX.Element => {
   const handleReply = (message: Message): void => {
     setReplyTo({
       id: message.id,
@@ -67,12 +65,7 @@ const Chat: React.FC<ChatProps> = ({
 
   return (
     <div className="chat">
-      <ChatHeader
-        nickname={nickname}
-        isServerRunning={isServerRunning}
-        isConnected={isConnected}
-        onOpenSettings={onOpenSettings}
-      />
+      <ChatTopBar isConnected={isConnected} isServerRunning={isServerRunning} />
 
       <ChatMessages messages={messages} myId={myId} onReply={handleReply} />
 
