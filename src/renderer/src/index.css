@@ -1,30 +1,29 @@
 :root {
-  /* Базовые цвета (Catppuccin Mocha) */
-  --bg-main: #1e1e2e;
-  --bg-surface: #313244;
-  --bg-input: #45475a;
-  --bg-input-focus: #585b70;
+  /* Базовые цвета (Discord Dark Theme) */
+  --bg-main: #313338;          /* Основной фон чата / сообщений */
+  --bg-surface: #2b2d31;       /* Фон списка каналов и боковых панелей */
+  --bg-input: #383a40;         /* Фон полей ввода (Message Box) */
+  --bg-input-focus: #404249;   /* Фон ввода при фокусе */
   
   /* Текст */
-  --text-main: #cdd6f4;
-  --text-muted: #a6adc8;
-  --text-placeholder: #6c7086;
+  --text-main: #f2f3f5;        /* Основной белый текст */
+  --text-muted: #b5bac1;       /* Вторичный серый текст */
+  --text-placeholder: #949ba4; /* Цвет плейсхолдеров */
   
-  /* Цветовые акценты */
-  --accent-blue: #89b4fa;
-  --accent-green: #a6e3a1;
-  --accent-yellow: #f9e2af;
-  --accent-red: #f38ba8;
+  /* Цветовые акценты (Официальный брендбук Discord) */
+  --accent-blue: #5865f2;      /* Знаменитый Discord Blurple */
+  --accent-green: #23a55a;     /* Зеленый статус «В сети» / Успех */
+  --accent-yellow: #f0b232;    /* Желтый статус «Не активен» / Предупреждение */
+  --accent-red: #f23f43;       /* Красный статус «Не беспокоить» / Ошибка */
   
   /* Интерактивные цвета кнопок при наведении */
-  --btn-primary-hover: #b4cdfa;
-  --btn-danger-hover: #f5a8bf;
-  --btn-send-hover: #b8edb4;
+  --btn-primary-hover: #4752c4; /* Ховер для Blurple */
+  --btn-danger-hover: #db373a;  /* Ховер для красного */
   
   /* Разметка и скругления */
-  --radius-lg: 12px;
-  --radius-md: 8px;
-  --transition-fast: 0.2s ease;
+  --radius-lg: 8px;            /* Discord использует чуть менее агрессивные скругления */
+  --radius-md: 4px;            /* Для инпутов и небольших элементов */
+  --transition-fast: 0.15s ease; /* Быстрые нативные анимации */
 }
 
 * {

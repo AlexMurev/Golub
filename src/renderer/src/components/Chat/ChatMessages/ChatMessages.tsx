@@ -1,27 +1,32 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import type { Message } from '../Chat';
 import './ChatMessages.css';
-
-interface Message {
-  id: string;
-  sender: string;
-  text: string;
-  replyTo?: {
-    id: string;
-    sender: string;
-    text: string;
-  };
-}
 
 interface ChatMessagesProps {
   messages: Message[];
+  myId: string;
   onReply: (message: Message) => void;
 }
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, onReply }) => {
+export const ChatMessages: React.FC<ChatMessagesProps> = ({
+  messages,
+  myId,
+  onReply
+}): React.JSX.Element => {
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = (): void => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
     <div className="chat-messages">
       {messages.map((msg) => {
-        const isOwn = msg.sender === 'Я';
+        const isOwn = msg.senderId === myId;
         return (
           <div
             key={msg.id}
@@ -30,7 +35,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, onReply })
             <div className={`chat-message ${isOwn ? 'chat-message--own' : ''}`}>
               <button
                 className="chat-message__reply-btn"
-                onClick={() => onReply(msg)}
+                onClick={(): void => onReply(msg)}
                 title="Ответить"
               >
                 <svg
@@ -50,19 +55,20 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, onReply })
 
               {msg.replyTo && (
                 <div className="chat-message__reply">
-                  <span className="chat-message__reply-sender">{msg.replyTo.sender}</span>
+                  <span className="chat-message__reply-sender">{msg.replyTo.senderNickname}</span>
                   <span className="chat-message__reply-text">{msg.replyTo.text}</span>
                 </div>
               )}
 
               <div className="chat-message__content">
-                <span className="chat-message__sender">{msg.sender}</span>
+                <span className="chat-message__sender">{isOwn ? 'Вы' : msg.senderNickname}</span>
                 <span className="chat-message__text">{msg.text}</span>
               </div>
             </div>
           </div>
         );
       })}
+      <div ref={messagesEndRef} />
     </div>
   );
 };

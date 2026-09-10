@@ -5,50 +5,53 @@ import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
 import { ChatInput } from './ChatInput/ChatInput';
 import './Chat.css';
 
-interface Message {
+export interface Message {
   id: string;
-  sender: string;
+  senderId: string;
+  senderNickname: string;
   text: string;
   replyTo?: {
     id: string;
-    sender: string;
+    senderId: string;
+    senderNickname: string;
     text: string;
   };
 }
 
 interface ChatProps {
   messages: Message[];
+  myId: string;
+  nickname: string;
   input: string;
   setInput: (value: string) => void;
   sendMessage: () => void;
-  serverAddress: string;
-  setServerAddress: (value: string) => void;
   isServerRunning: boolean;
-  startServer: () => void;
-  connectToServer: () => void;
   isConnected: boolean;
-  replyTo: { id: string; sender: string; text: string } | null;
-  setReplyTo: (value: { id: string; sender: string; text: string } | null) => void;
+  replyTo: { id: string; senderId: string; senderNickname: string; text: string } | null;
+  setReplyTo: (
+    value: { id: string; senderId: string; senderNickname: string; text: string } | null
+  ) => void;
+  onOpenSettings: () => void;
 }
 
 const Chat: React.FC<ChatProps> = ({
   messages,
+  myId,
+  nickname,
   input,
   setInput,
   sendMessage,
-  serverAddress,
-  setServerAddress,
   isServerRunning,
-  startServer,
-  connectToServer,
   isConnected,
   replyTo,
-  setReplyTo
+  setReplyTo,
+  onOpenSettings
 }) => {
   const handleReply = (message: Message): void => {
     setReplyTo({
       id: message.id,
-      sender: message.sender,
+      senderId: message.senderId,
+      senderNickname: message.senderNickname,
       text: message.text
     });
 
@@ -65,15 +68,13 @@ const Chat: React.FC<ChatProps> = ({
   return (
     <div className="chat">
       <ChatHeader
-        serverAddress={serverAddress}
-        setServerAddress={setServerAddress}
+        nickname={nickname}
         isServerRunning={isServerRunning}
-        startServer={startServer}
-        connectToServer={connectToServer}
         isConnected={isConnected}
+        onOpenSettings={onOpenSettings}
       />
 
-      <ChatMessages messages={messages} onReply={handleReply} />
+      <ChatMessages messages={messages} myId={myId} onReply={handleReply} />
 
       {replyTo && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
 

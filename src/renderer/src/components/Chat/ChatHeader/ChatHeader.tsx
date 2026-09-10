@@ -2,57 +2,50 @@ import React from 'react';
 import './ChatHeader.css';
 
 interface ChatHeaderProps {
-  serverAddress: string;
-  setServerAddress: (value: string) => void;
+  nickname: string;
   isServerRunning: boolean;
-  startServer: () => void;
-  connectToServer: () => void;
   isConnected: boolean;
+  onOpenSettings: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
-  serverAddress,
-  setServerAddress,
+  nickname,
   isServerRunning,
-  startServer,
-  connectToServer,
-  isConnected
-}) => {
+  isConnected,
+  onOpenSettings
+}): React.JSX.Element => {
+  const getStatusModifier = (): string => {
+    if (!isConnected) return 'chat-header__status--disconnected';
+    return isServerRunning
+      ? 'chat-header__status--connected-host'
+      : 'chat-header__status--connected-client';
+  };
+
+  const getStatusText = (): string => {
+    if (!isConnected) return 'Отключено';
+    return isServerRunning ? 'Хост • Подключено' : 'Клиент • Подключено';
+  };
+
   return (
     <header className="chat-header">
-      <span
-        className={`chat-header__status ${
-          isServerRunning ? 'chat-header__status--host' : 'chat-header__status--client'
-        }`}
-      >
-        {isServerRunning ? 'Хост' : 'Клиент'}
-      </span>
-      <span
-        className={`chat-header__status ${
-          isConnected ? 'chat-header__status--connected' : 'chat-header__status--disconnected'
-        }`}
-      >
-        {isConnected ? 'Подключено' : 'Отключено'}
-      </span>
-      <input
-        className="chat-header__input-address"
-        type="text"
-        value={serverAddress}
-        onChange={(e) => setServerAddress(e.target.value)}
-        placeholder="ws://localhost:8080"
-      />
-      <button
-        className="chat-header__button chat-header__button--primary"
-        onClick={startServer}
-        disabled={isServerRunning}
-      >
-        {isServerRunning ? 'Сервер запущен' : 'Стать хостом'}
-      </button>
-      <button
-        className={`chat-header__button ${isConnected ? 'chat-header__button--danger' : ''}`}
-        onClick={connectToServer}
-      >
-        {isConnected ? 'Отключиться' : 'Подключиться'}
+      <div className="chat-header__info">
+        <span className="chat-header__nickname">{nickname}</span>
+        <span className={`chat-header__status ${getStatusModifier()}`}>{getStatusText()}</span>
+      </div>
+      <button className="chat-header__settings" onClick={onOpenSettings} title="Настройки">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
       </button>
     </header>
   );
