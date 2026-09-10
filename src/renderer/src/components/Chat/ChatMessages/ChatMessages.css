@@ -28,6 +28,20 @@
   background: var(--bg-tertiary);
 }
 
+/* Нативная вспышка подсветки сообщения из Discord при переходе по ссылке */
+.chat-message-row--highlighted {
+  animation: discordFlash 1s ease-out;
+}
+
+@keyframes discordFlash {
+  0% {
+    background: rgba(88, 101, 200, 0.3); /* Прозрачный синий Blurple акцент */
+  }
+  100% {
+    background: transparent;
+  }
+}
+
 /* Фиксированная левая колонка для выравнивания */
 .chat-message__left-column {
   width: 40px;
@@ -39,7 +53,7 @@
 }
 
 .chat-message-row--grouped .chat-message__left-column {
-  height: auto; /* Высота подстраивается под компактную строку */
+  height: auto;
   align-items: center;
 }
 
@@ -115,7 +129,6 @@
   transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
 }
 
-/* Корректировка высоты кнопки для сгруппированных строк */
 .chat-message-row--grouped .chat-message__reply-btn {
   top: 50%;
   transform: translateY(-50%);
@@ -130,12 +143,22 @@
   background: var(--bg-elevated);
 }
 
+/* Цитата ответа теперь кликабельная ссылка */
 .chat-message__reply {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
   opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+  max-width: 100%;
+  transition: opacity var(--transition-fast);
+}
+
+.chat-message__reply:hover {
+  opacity: 1; /* При наведении становится ярче, намекая на ссылку */
 }
 
 .chat-message__reply::before {
@@ -169,6 +192,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition-fast);
 }
 
 .chat-messages::-webkit-scrollbar {

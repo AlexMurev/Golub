@@ -28,6 +28,7 @@ interface ChatProps {
   input: string;
   setInput: (value: string) => void;
   sendMessage: () => void;
+  deleteMessage: (messageId: string) => void;
   isServerRunning: boolean;
   isConnected: boolean;
   replyTo: NonNullable<Message['replyTo']> | null;
@@ -41,6 +42,7 @@ const Chat: React.FC<ChatProps> = ({
   input,
   setInput,
   sendMessage,
+  deleteMessage,
   isServerRunning,
   isConnected,
   replyTo,
@@ -69,7 +71,12 @@ const Chat: React.FC<ChatProps> = ({
     <div className="chat">
       <ChatTopBar isConnected={isConnected} isServerRunning={isServerRunning} />
 
-      <ChatMessages messages={messages} myId={myId} onReply={handleReply} />
+      <ChatMessages
+        messages={messages}
+        myId={myId}
+        onReply={handleReply}
+        onDelete={deleteMessage}
+      />
 
       {replyTo && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
 

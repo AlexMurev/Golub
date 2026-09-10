@@ -2,10 +2,12 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
+import iconIco from '../../resources/icon.ico?asset';
 import { WebSocketServer } from 'ws';
 
+const windowIcon = process.platform === 'win32' ? iconIco : icon;
+
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 850,
     height: 900,
@@ -13,7 +15,7 @@ function createWindow(): void {
     minWidth: 300,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: windowIcon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -25,7 +27,6 @@ function createWindow(): void {
   ipcMain.handle('start-server', async (_event, port: number) => {
     try {
       if (wss) {
-        // Если сервер уже запущен, закрываем его
         wss.close();
         wss = null;
       }
@@ -37,16 +38,16 @@ function createWindow(): void {
 
         ws.on('message', (message) => {
           try {
-            // Парсим как JSON, чтобы сохранить структуру
             const data = JSON.parse(message.toString());
-            // Рассылаем всем, кроме отправителя
+
+            // Ретранслируем любые типы событий (и message, и delete-message)
             wss?.clients.forEach((client) => {
               if (client !== ws && client.readyState === 1) {
                 client.send(JSON.stringify(data));
               }
             });
           } catch (error) {
-            console.error('Ошибка парсинга сообщения:', error);
+            console.error('Ошибка обработки события на сервере:', error);
           }
         });
 
@@ -71,8 +72,6 @@ function createWindow(): void {
     return { action: 'deny' };
   });
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
@@ -85,7 +84,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron');
+  electronApp.setAppUserModelId('com.alexmurev.golub');
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

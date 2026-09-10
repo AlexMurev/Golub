@@ -40,10 +40,19 @@ function App(): React.JSX.Element {
     newWs.onmessage = (event: MessageEvent): void => {
       try {
         const data = JSON.parse(event.data);
+
         if (data.type === 'message') {
           const incoming: Message = data.payload;
           if (incoming.senderId === user.id) return;
           setMessages((prev) => [...prev, incoming]);
+        }
+        // Ловим сетевое удаление от других участников
+        else if (data.type === 'delete-message') {
+          const { id } = data.payload;
+          setMessages((prev) => prev.filter((msg) => msg.id !== id));
+          if (replyTo?.id === id) {
+            setReplyTo(null);
+          }
         }
       } catch (e) {
         console.error('Ошибка парсинга входящего сообщения:', e);
@@ -81,6 +90,19 @@ function App(): React.JSX.Element {
     }
   };
 
+  const deleteMessage = (messageId: string): void => {
+    // 1. Локальное удаление
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+    if (replyTo?.id === messageId) {
+      setReplyTo(null);
+    }
+
+    // 2. Отправка по сети события удаления
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'delete-message', payload: { id: messageId } }));
+    }
+  };
+
   return (
     <div className="app-layout">
       <Group orientation="horizontal">
@@ -114,6 +136,7 @@ function App(): React.JSX.Element {
             input={input}
             setInput={setInput}
             sendMessage={sendMessage}
+            deleteMessage={deleteMessage}
             isServerRunning={isServerRunning}
             isConnected={ws !== null}
             replyTo={replyTo}

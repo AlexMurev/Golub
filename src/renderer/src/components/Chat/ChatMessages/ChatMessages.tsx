@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ContextMenu, ContextMenuItem } from '@renderer/components/ContextMenu/ContextMenu';
 import type { Message } from '../Chat';
 import './ChatMessages.css';
 
@@ -6,13 +7,24 @@ interface ChatMessagesProps {
   messages: Message[];
   myId: string;
   onReply: (message: Message) => void;
+  onDelete: (messageId: string) => void;
+}
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  message: Message;
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
   messages,
-  onReply
+  myId,
+  onReply,
+  onDelete
 }): React.JSX.Element => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [menuState, setMenuState] = useState<ContextMenuState | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,6 +33,40 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const closeMenu = (): void => setMenuState(null);
+    window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
+  }, []);
+
+  const handleContextMenu = (e: React.MouseEvent, msg: Message): void => {
+    e.preventDefault();
+    setMenuState({
+      x: e.clientX,
+      y: e.clientY,
+      message: msg
+    });
+  };
+
+  const handleCopyText = (text: string): void => {
+    navigator.clipboard.writeText(text).catch((err) => {
+      console.error('Ошибка копирования: ', err);
+    });
+  };
+
+  // Метод для плавного скролла к сообщению и его подсветки
+  const handleJumpToMessage = (targetId: string): void => {
+    const targetElement = document.getElementById(`msg-${targetId}`);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      setHighlightedId(targetId);
+      setTimeout(() => {
+        setHighlightedId(null);
+      }, 1000); // Подсветка держится ровно 1 секунду
+    }
+  };
 
   const formatFullDate = (timestamp: number): string => {
     if (!timestamp) return '';
@@ -40,13 +86,73 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getMenuActions = (msg: Message): ContextMenuItem[] => {
+    const actions: ContextMenuItem[] = [
+      {
+        label: 'Ответить',
+        onClick: (): void => onReply(msg),
+        icon: (
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <polyline points="9 17 4 12 9 7"></polyline>
+            <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+          </svg>
+        )
+      },
+      {
+        label: 'Копировать текст',
+        onClick: (): void => handleCopyText(msg.text),
+        icon: (
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        )
+      }
+    ];
+
+    if (msg.senderId === myId) {
+      actions.push({
+        label: 'Удалить сообщение',
+        onClick: (): void => onDelete(msg.id),
+        isDanger: true,
+        icon: (
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        )
+      });
+    }
+
+    return actions;
+  };
+
   return (
     <div className="chat-messages">
       {messages.map((msg, index) => {
-        // Проверяем предыдущее сообщение для группировки
         const prevMsg = index > 0 ? messages[index - 1] : null;
 
-        // Условия группировки: тот же автор, нет ответа, и прошло менее 5 минут (300000 мс)
         const isGrouped =
           prevMsg &&
           prevMsg.senderId === msg.senderId &&
@@ -55,10 +161,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 
         return (
           <div
+            id={`msg-${msg.id}`}
             key={msg.id}
-            className={`chat-message-row ${isGrouped ? 'chat-message-row--grouped' : ''}`}
+            className={`chat-message-row ${isGrouped ? 'chat-message-row--grouped' : ''} ${highlightedId === msg.id ? 'chat-message-row--highlighted' : ''}`}
+            onContextMenu={(e: React.MouseEvent): void => handleContextMenu(e, msg)}
           >
-            {/* Левая колонка: Аватарка или Короткое время ховера */}
             <div className="chat-message__left-column">
               {isGrouped ? (
                 <span className="chat-message__hover-time">{formatShortTime(msg.createdAt)}</span>
@@ -76,7 +183,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             </div>
 
             <div className="chat-message">
-              {/* Кнопка ответа */}
               <button
                 className="chat-message__reply-btn"
                 onClick={(): void => onReply(msg)}
@@ -97,9 +203,12 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 </svg>
               </button>
 
-              {/* Блок цитирования (только для не сгруппированных по логике, либо если явно вызван ответ) */}
               {msg.replyTo && (
-                <div className="chat-message__reply">
+                <div
+                  className="chat-message__reply"
+                  onClick={(): void => handleJumpToMessage(msg.replyTo!.id)}
+                  title="Перейти к сообщению"
+                >
                   {msg.replyTo.senderAvatar ? (
                     <img
                       src={msg.replyTo.senderAvatar}
@@ -116,7 +225,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 </div>
               )}
 
-              {/* Шапка метаданных рендерится только если сообщение НЕ сгруппировано */}
               {!isGrouped && (
                 <div className="chat-message__meta">
                   <span className="chat-message__sender">{msg.senderNickname}</span>
@@ -124,13 +232,21 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 </div>
               )}
 
-              {/* Текст сообщения */}
               <div className="chat-message__text">{msg.text}</div>
             </div>
           </div>
         );
       })}
       <div ref={messagesEndRef} />
+
+      {menuState && (
+        <ContextMenu
+          x={menuState.x}
+          y={menuState.y}
+          items={getMenuActions(menuState.message)}
+          onClose={(): void => setMenuState(null)}
+        />
+      )}
     </div>
   );
 };
