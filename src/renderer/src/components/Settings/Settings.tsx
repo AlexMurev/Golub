@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import './Settings.css';
 
 interface SettingsProps {
   nickname: string;
   setNickname: (value: string) => void;
+  avatar?: string;
+  setAvatar: (value: string) => void;
   userId: string;
   serverAddress: string;
   setServerAddress: (value: string) => void;
@@ -17,6 +19,8 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({
   nickname,
   setNickname,
+  avatar,
+  setAvatar,
   userId,
   serverAddress,
   setServerAddress,
@@ -26,6 +30,31 @@ export const Settings: React.FC<SettingsProps> = ({
   isConnected,
   onClose
 }): React.JSX.Element => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleAvatarClick = (): void => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Валидация размера (например, до 2МБ)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Файл слишком большой. Максимальный размер — 2МБ.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = (): void => {
+        if (typeof reader.result === 'string') {
+          setAvatar(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="settings-overlay" onClick={onClose}>
       <div className="settings" onClick={(e: React.MouseEvent): void => e.stopPropagation()}>
@@ -39,6 +68,34 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="settings__body">
           <section className="settings__section">
             <h3 className="settings__section-title">Профиль</h3>
+
+            {/* Интерактивная смена аватарки в стиле Discord */}
+            <div className="settings__avatar-selector">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+              <div
+                className="settings__avatar-preview-wrapper"
+                onClick={handleAvatarClick}
+                title="Изменить аватар"
+              >
+                {avatar ? (
+                  <img src={avatar} alt="Preview" className="settings__avatar-preview" />
+                ) : (
+                  <div className="settings__avatar-placeholder">
+                    {nickname.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                )}
+                <div className="settings__avatar-overlay">
+                  <span>СМЕНИТЬ</span>
+                </div>
+              </div>
+            </div>
+
             <label className="settings__field">
               <span className="settings__label">Ник</span>
               <input

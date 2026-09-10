@@ -160,3 +160,62 @@
 .settings__button--danger:hover:not(:disabled) {
   background: var(--accent-danger-hover);
 }
+
+.settings__avatar-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.4rem;
+}
+
+.settings__avatar-preview-wrapper {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.settings__avatar-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings__avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--accent-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Эффект затемнения со словом СМЕНИТЬ при наведении на аватарку */
+.settings__avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.settings__avatar-overlay span {
+  font-size: 0.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.settings__avatar-preview-wrapper:hover .settings__avatar-overlay {
+  opacity: 1;
+}
+

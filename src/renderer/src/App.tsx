@@ -61,8 +61,18 @@ function App(): React.JSX.Element {
         id: Date.now().toString(),
         senderId: user.id,
         senderNickname: user.nickname,
+        senderAvatar: user.avatar,
         text: input,
-        replyTo: replyTo || undefined
+        createdAt: Date.now(),
+        replyTo: replyTo
+          ? {
+              id: replyTo.id,
+              senderId: replyTo.senderId,
+              senderNickname: replyTo.senderNickname,
+              senderAvatar: replyTo.senderAvatar,
+              text: replyTo.text
+            }
+          : undefined
       };
       ws.send(JSON.stringify({ type: 'message', payload: message }));
       setMessages((prev) => [...prev, message]);
@@ -86,6 +96,7 @@ function App(): React.JSX.Element {
 
             <UserBar
               nickname={user.nickname}
+              avatar={user.avatar}
               isServerRunning={isServerRunning}
               isConnected={ws !== null}
               onOpenSettings={(): void => setIsSettingsOpen(true)}
@@ -116,6 +127,8 @@ function App(): React.JSX.Element {
         <Settings
           nickname={user.nickname}
           setNickname={(value: string): void => updateUser({ nickname: value })}
+          avatar={user.avatar}
+          setAvatar={(value: string): void => updateUser({ avatar: value })}
           userId={user.id}
           serverAddress={serverAddress}
           setServerAddress={setServerAddress}

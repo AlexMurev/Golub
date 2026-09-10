@@ -3,10 +3,64 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--bg-deep); /* Самый нижний/темный слой подвала сайдбара */
+  padding: 8px;
+  background: var(--bg-secondary); /* Карточка темнее, чем фон сайдбара */
   height: 52px;
+  margin: 8px; /* Создает эффект парения от краев сайдбара */
+  border-radius: var(--radius-lg); /* Используем скругления из дизайн-системы */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Легкая тень для объема */
 }
+
+.user-bar__profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-bar__avatar-container {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.user-bar__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-bar__avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  user-select: none;
+}
+
+/* Статусный кружок теперь имеет обводку под цвет карточки */
+.user-bar__status-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-deep); 
+}
+
+.user-bar__status--connected-host { background: var(--accent-primary); }
+.user-bar__status--connected-client { background: var(--accent-success); }
+.user-bar__status--disconnected { background: var(--accent-danger); }
 
 .user-bar__profile {
   display: flex;
@@ -16,42 +70,20 @@
 }
 
 .user-bar__nickname {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-.user-bar__status {
-  font-size: 0.6rem;
+.user-bar__status-text {
+  font-size: 0.55rem;
   font-weight: 500;
   color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.user-bar__status::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  flex-shrink: 0;
-}
-
-/* Статусы используют семантические акценты */
-.user-bar__status--connected-host::before { 
-  background: var(--accent-primary); 
-}
-.user-bar__status--connected-client::before { 
-  background: var(--accent-success); 
-}
-.user-bar__status--disconnected::before { 
-  background: var(--accent-danger); 
+  line-height: 1.2;
 }
 
 .user-bar__settings {
@@ -69,10 +101,10 @@
 }
 
 .user-bar__settings:hover {
-  background: var(--bg-tertiary); /* Поднимаем до базового слоя кнопок */
+  background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
 .user-bar__settings:active {
-  background: var(--bg-elevated); /* Максимальный слой при клике */
+  background: var(--bg-elevated);
 }

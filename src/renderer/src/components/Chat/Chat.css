@@ -2,6 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 16px 16px 16px; /* Оставляем чистые отступы для контента внутри окна чата */
-  background: var(--bg-main);
+  padding: 0 16px 16px 16px; 
+  background: var(--bg-secondary);
 }

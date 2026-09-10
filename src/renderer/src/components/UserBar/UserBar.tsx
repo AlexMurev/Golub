@@ -3,6 +3,7 @@ import './UserBar.css';
 
 interface UserBarProps {
   nickname: string;
+  avatar?: string;
   isServerRunning: boolean;
   isConnected: boolean;
   onOpenSettings: () => void;
@@ -10,6 +11,7 @@ interface UserBarProps {
 
 export const UserBar: React.FC<UserBarProps> = ({
   nickname,
+  avatar,
   isServerRunning,
   isConnected,
   onOpenSettings
@@ -28,12 +30,27 @@ export const UserBar: React.FC<UserBarProps> = ({
 
   return (
     <div className="user-bar">
-      <div className="user-bar__profile">
-        <span className="user-bar__nickname" title={nickname}>
-          {nickname}
-        </span>
-        <span className={`user-bar__status ${getStatusModifier()}`}>{getStatusText()}</span>
+      <div className="user-bar__profile-wrapper">
+        {/* Блок аватарки с индикатором статуса сети поверх нее */}
+        <div className="user-bar__avatar-container">
+          {avatar ? (
+            <img src={avatar} alt={nickname} className="user-bar__avatar" />
+          ) : (
+            <div className="user-bar__avatar-placeholder">
+              {nickname.charAt(0).toUpperCase() || 'A'}
+            </div>
+          )}
+          <div className={`user-bar__status-badge ${getStatusModifier()}`} />
+        </div>
+
+        <div className="user-bar__profile">
+          <span className="user-bar__nickname" title={nickname}>
+            {nickname}
+          </span>
+          <span className="user-bar__status-text">{getStatusText()}</span>
+        </div>
       </div>
+
       <button className="user-bar__settings" onClick={onOpenSettings} title="Настройки">
         <svg
           width="18"

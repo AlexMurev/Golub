@@ -9,11 +9,14 @@ export interface Message {
   id: string;
   senderId: string;
   senderNickname: string;
+  senderAvatar?: string;
   text: string;
+  createdAt: number;
   replyTo?: {
     id: string;
     senderId: string;
     senderNickname: string;
+    senderAvatar?: string;
     text: string;
   };
 }
@@ -27,10 +30,8 @@ interface ChatProps {
   sendMessage: () => void;
   isServerRunning: boolean;
   isConnected: boolean;
-  replyTo: { id: string; senderId: string; senderNickname: string; text: string } | null;
-  setReplyTo: (
-    value: { id: string; senderId: string; senderNickname: string; text: string } | null
-  ) => void;
+  replyTo: NonNullable<Message['replyTo']> | null;
+  setReplyTo: (value: NonNullable<Message['replyTo']> | null) => void;
   onOpenSettings: () => void;
 }
 
@@ -50,6 +51,7 @@ const Chat: React.FC<ChatProps> = ({
       id: message.id,
       senderId: message.senderId,
       senderNickname: message.senderNickname,
+      senderAvatar: message.senderAvatar,
       text: message.text
     });
 
