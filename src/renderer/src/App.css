@@ -1,21 +1,15 @@
 .app-layout {
-  display: flex;
   width: 100vw;
   height: 100vh;
-  background: var(--bg-secondary); /* Вторичный фон: главное окно чата */
+  background: var(--bg-secondary);
   overflow: hidden;
-}
-
-.sidebar-panel {
-  display: flex;
-  flex-direction: column;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg-primary); /* Первичный фон: боковые панели */
+  background: var(--bg-primary);
 }
 
 .sidebar__contacts {
@@ -23,18 +17,19 @@
   overflow-y: auto;
 }
 
-.sidebar-resizer {
+/* Separator */
+.app-layout__resizer {
   width: 4px;
   background: transparent;
   cursor: col-resize;
   transition: background var(--transition-fast);
+  outline: none;
 }
 
-.sidebar-resizer:hover,
-.sidebar-resizer[data-resize-handle-state="drag"] {
-  background: rgba(0, 0, 0, 0.3);
+.app-layout__resizer:hover {
+  background: var(--bg-tertiary);
 }
 
-.chat-panel {
-  background: var(--bg-secondary);
+.app-layout__resizer[data-separator="active"] {
+  background: var(--bg-elevated);
 }

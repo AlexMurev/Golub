@@ -25,7 +25,7 @@
   --accent-primary: #5865f2;   /* Главный бренд (Blurple): фокус, выделение, основные действия */
   --accent-primary-hover: #4752c4;
   
-  --accent-success: #23a55a;   /* Успех / Статус "В сети" / Действие по отправке */
+  --accent-success: #23a55a;   /* Успех / Статус "В сети" */
   --accent-success-hover: #1f9250;
   
   --accent-warning: #f0b232;   /* Предупреждение / Статус "Не активен" */

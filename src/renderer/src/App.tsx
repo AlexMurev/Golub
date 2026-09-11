@@ -110,25 +110,23 @@ function App(): React.JSX.Element {
           defaultSize={250}
           minSize={250}
           maxSize={400}
-          className="sidebar-panel"
+          className="sidebar"
           groupResizeBehavior="preserve-pixel-size"
         >
-          <div className="sidebar">
-            <div className="sidebar__contacts">{/* Будущий список контактов */}</div>
+          <div className="sidebar__contacts">{/* Будущий список контактов */}</div>
 
-            <UserBar
-              nickname={user.nickname}
-              avatar={user.avatar}
-              isServerRunning={isServerRunning}
-              isConnected={ws !== null}
-              onOpenSettings={(): void => setIsSettingsOpen(true)}
-            />
-          </div>
+          <UserBar
+            nickname={user.nickname}
+            avatar={user.avatar}
+            isServerRunning={isServerRunning}
+            isConnected={ws !== null}
+            onOpenSettings={(): void => setIsSettingsOpen(true)}
+          />
         </Panel>
 
-        <Separator className="sidebar-resizer" />
+        <Separator className="app-layout__resizer" />
 
-        <Panel className="chat-panel">
+        <Panel>
           <Chat
             messages={messages}
             myId={user.id}

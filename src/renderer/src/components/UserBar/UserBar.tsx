@@ -17,10 +17,10 @@ export const UserBar: React.FC<UserBarProps> = ({
   onOpenSettings
 }): React.JSX.Element => {
   const getStatusModifier = (): string => {
-    if (!isConnected) return 'user-bar__status--disconnected';
+    if (!isConnected) return 'user-bar__status-badge--disconnected';
     return isServerRunning
-      ? 'user-bar__status--connected-host'
-      : 'user-bar__status--connected-client';
+      ? 'user-bar__status-badge--connected-host'
+      : 'user-bar__status-badge--connected-client';
   };
 
   const getStatusText = (): string => {

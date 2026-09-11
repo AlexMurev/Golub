@@ -1,21 +1,21 @@
 .chat-top-bar {
-  height: 48px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 8px;
-  border-bottom: 1px solid var(--bg-primary); /* Разделитель на тон темнее фона чата */
+  height: 48px;
   margin-bottom: 16px;
+  border-bottom: 1px solid var(--bg-primary);
 }
 
 .chat-top-bar__hashtag {
-  font-size: 1.1rem;
-  font-weight: 500;
   color: var(--text-muted);
+  font-weight: 500;
+  font-size: 1.1rem;
 }
 
 .chat-top-bar__title {
-  font-size: 0.8rem;
-  font-weight: 600;
   color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
 }

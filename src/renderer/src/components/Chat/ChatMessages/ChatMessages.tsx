@@ -16,6 +16,8 @@ interface ContextMenuState {
   message: Message;
 }
 
+const SCROLL_BOTTOM_THRESHOLD = 50;
+
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
   messages,
   myId,
@@ -23,6 +25,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   onDelete
 }): React.JSX.Element => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const isAtBottomRef = useRef<boolean>(true);
   const [menuState, setMenuState] = useState<ContextMenuState | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
@@ -30,9 +33,22 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>): void => {
+    const el = e.currentTarget;
+    isAtBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_BOTTOM_THRESHOLD;
+  };
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    const isOwnMessage = lastMessage.senderId === myId;
+
+    if (isAtBottomRef.current || isOwnMessage) {
+      scrollToBottom();
+    }
+  }, [messages, myId]);
 
   useEffect(() => {
     const closeMenu = (): void => setMenuState(null);
@@ -55,7 +71,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     });
   };
 
-  // Метод для плавного скролла к сообщению и его подсветки
   const handleJumpToMessage = (targetId: string): void => {
     const targetElement = document.getElementById(`msg-${targetId}`);
     if (targetElement) {
@@ -64,7 +79,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       setHighlightedId(targetId);
       setTimeout(() => {
         setHighlightedId(null);
-      }, 1000); // Подсветка держится ровно 1 секунду
+      }, 1000);
     }
   };
 
@@ -149,7 +164,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   };
 
   return (
-    <div className="chat-messages">
+    <div className="chat-messages" onScroll={handleScroll}>
       {messages.map((msg, index) => {
         const prevMsg = index > 0 ? messages[index - 1] : null;
 
@@ -166,9 +181,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             className={`chat-message-row ${isGrouped ? 'chat-message-row--grouped' : ''} ${highlightedId === msg.id ? 'chat-message-row--highlighted' : ''}`}
             onContextMenu={(e: React.MouseEvent): void => handleContextMenu(e, msg)}
           >
-            <div className="chat-message__left-column">
+            <div className="chat-message-row__left-column">
               {isGrouped ? (
-                <span className="chat-message__hover-time">{formatShortTime(msg.createdAt)}</span>
+                <span className="chat-message-row__hover-time">
+                  {formatShortTime(msg.createdAt)}
+                </span>
               ) : msg.senderAvatar ? (
                 <img
                   src={msg.senderAvatar}

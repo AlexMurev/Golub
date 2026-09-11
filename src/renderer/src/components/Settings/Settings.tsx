@@ -91,7 +91,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   </div>
                 )}
                 <div className="settings__avatar-overlay">
-                  <span>СМЕНИТЬ</span>
+                  <span className="settings__avatar-overlay-text">СМЕНИТЬ</span>
                 </div>
               </div>
             </div>

@@ -11,9 +11,11 @@ export const ChatReplyPreview: React.FC<ChatReplyPreviewProps> = ({ replyTo, onC
     <div className="chat-reply-preview">
       <div className="chat-reply-preview__content">
         <span className="chat-reply-preview__sender">{replyTo.senderNickname}</span>
-        <span className="chat-reply-preview__text">{replyTo.text}</span>
+        <span className="chat-reply-preview__text" title={replyTo.text}>
+          {replyTo.text}
+        </span>
       </div>
-      <button className="chat-reply-preview__cancel" onClick={onCancel}>
+      <button className="chat-reply-preview__cancel" onClick={onCancel} title="Отменить ответ">
         ✕
       </button>
     </div>

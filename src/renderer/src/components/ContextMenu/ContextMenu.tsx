@@ -4,7 +4,7 @@ import './ContextMenu.css';
 export interface ContextMenuItem {
   label: string;
   onClick: () => void;
-  icon?: React.ReactNode; // Поле для иконок действий
+  icon?: React.ReactNode;
   isDanger?: boolean;
 }
 
@@ -12,7 +12,7 @@ interface ContextMenuProps {
   x: number;
   y: number;
   items: ContextMenuItem[];
-  onClose: () => void; // Проп для автоматического закрытия меню
+  onClose: () => void;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -23,7 +23,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
 }): React.JSX.Element => {
   const handleItemClick = (callback: () => void): void => {
     callback();
-    onClose(); // Закрываем меню сразу после выполнения действия
+    onClose();
   };
 
   return (

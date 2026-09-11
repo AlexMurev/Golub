@@ -41,10 +41,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         disabled={!isConnected}
       />
       <button
-        className="chat-input-area__button-send"
+        className="chat-input-area__send-button"
         onClick={sendMessage}
         disabled={!isConnected || !input.trim()}
-        title="Ответить"
+        title="Отправить"
       >
         <svg
           width="16"
