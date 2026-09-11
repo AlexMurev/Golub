@@ -9,8 +9,8 @@ const windowIcon = process.platform === 'win32' ? iconIco : icon;
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 850,
-    height: 900,
+    width: 1200,
+    height: 750,
     minHeight: 300,
     minWidth: 300,
     show: false,

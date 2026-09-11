@@ -4,22 +4,7 @@ import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
 import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
 import './Chat.css';
-
-export interface Message {
-  id: string;
-  senderId: string;
-  senderNickname: string;
-  senderAvatar?: string;
-  text: string;
-  createdAt: number;
-  replyTo?: {
-    id: string;
-    senderId: string;
-    senderNickname: string;
-    senderAvatar?: string;
-    text: string;
-  };
-}
+import { Message } from '@renderer/types/chat';
 
 interface ChatProps {
   messages: Message[];

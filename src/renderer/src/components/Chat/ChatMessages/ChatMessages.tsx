@@ -1,7 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { ContextMenu, ContextMenuItem } from '@renderer/components/ContextMenu/ContextMenu';
-import type { Message } from '../Chat';
+import type { Message } from '@renderer/types/chat';
+import { useChatScroll } from '@renderer/hooks/useChatScroll';
+import { useMessageContextMenu } from '@renderer/hooks/useMessageContextMenu';
+import { ChatMessageItem } from './ChatMessageItem/ChatMessageItem';
 import './ChatMessages.css';
+
 import ReplyIcon from '@renderer/assets/reply.svg?react';
 import CopyIcon from '@renderer/assets/copy.svg?react';
 import DeleteIcon from '@renderer/assets/delete.svg?react';
@@ -13,63 +17,19 @@ interface ChatMessagesProps {
   onDelete: (messageId: string) => void;
 }
 
-interface ContextMenuState {
-  x: number;
-  y: number;
-  message: Message;
-}
-
-const SCROLL_BOTTOM_THRESHOLD = 50;
-
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
   messages,
   myId,
   onReply,
   onDelete
 }): React.JSX.Element => {
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const isAtBottomRef = useRef<boolean>(true);
-  const [menuState, setMenuState] = useState<ContextMenuState | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const scrollToBottom = (): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>): void => {
-    const el = e.currentTarget;
-    isAtBottomRef.current =
-      el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_BOTTOM_THRESHOLD;
-  };
-
-  useEffect(() => {
-    if (messages.length === 0) return;
-
-    const lastMessage = messages[messages.length - 1];
-    const isOwnMessage = lastMessage.senderId === myId;
-
-    if (isAtBottomRef.current || isOwnMessage) {
-      scrollToBottom();
-    }
-  }, [messages, myId]);
-
-  useEffect(() => {
-    const closeMenu = (): void => setMenuState(null);
-    window.addEventListener('click', closeMenu);
-    return () => window.removeEventListener('click', closeMenu);
-  }, []);
-
-  const handleContextMenu = (e: React.MouseEvent, msg: Message): void => {
-    e.preventDefault();
-    setMenuState({
-      x: e.clientX,
-      y: e.clientY,
-      message: msg
-    });
-  };
+  const { messagesEndRef, handleScroll } = useChatScroll(messages, myId);
+  const { menuState, handleContextMenu, closeMenu } = useMessageContextMenu();
 
   const handleCopyText = (text: string): void => {
-    navigator.clipboard.writeText(text).catch((err) => {
+    navigator.clipboard.writeText(text).catch((err: unknown) => {
       console.error('Ошибка копирования: ', err);
     });
   };
@@ -78,30 +38,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     const targetElement = document.getElementById(`msg-${targetId}`);
     if (targetElement) {
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
       setHighlightedId(targetId);
-      setTimeout(() => {
-        setHighlightedId(null);
-      }, 1000);
+      setTimeout((): void => setHighlightedId(null), 1000);
     }
-  };
-
-  const formatFullDate = (timestamp: number): string => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return date.toLocaleString([], {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatShortTime = (timestamp: number): string => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getMenuActions = (msg: Message): ContextMenuItem[] => {
@@ -126,87 +65,31 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         icon: <DeleteIcon width="12" height="12" />
       });
     }
-
     return actions;
   };
 
   return (
     <div className="chat-messages" onScroll={handleScroll}>
-      {messages.map((msg, index) => {
-        const prevMsg = index > 0 ? messages[index - 1] : null;
+      {messages.map((msg: Message, index: number): React.JSX.Element => {
+        const prevMsg: Message | null = index > 0 ? messages[index - 1] : null;
 
-        const isGrouped =
+        const isGrouped: boolean = !!(
           prevMsg &&
           prevMsg.senderId === msg.senderId &&
           !msg.replyTo &&
-          msg.createdAt - prevMsg.createdAt < 300000;
+          msg.createdAt - prevMsg.createdAt < 300000
+        );
 
         return (
-          <div
-            id={`msg-${msg.id}`}
+          <ChatMessageItem
             key={msg.id}
-            className={`chat-message-row ${isGrouped ? 'chat-message-row--grouped' : ''} ${highlightedId === msg.id ? 'chat-message-row--highlighted' : ''}`}
-            onContextMenu={(e: React.MouseEvent): void => handleContextMenu(e, msg)}
-          >
-            <div className="chat-message-row__left-column">
-              {isGrouped ? (
-                <span className="chat-message-row__hover-time">
-                  {formatShortTime(msg.createdAt)}
-                </span>
-              ) : msg.senderAvatar ? (
-                <img
-                  src={msg.senderAvatar}
-                  alt={msg.senderNickname}
-                  className="chat-message__avatar"
-                />
-              ) : (
-                <div className="chat-message__avatar chat-message__avatar--placeholder">
-                  {msg.senderNickname.charAt(0).toUpperCase() || 'A'}
-                </div>
-              )}
-            </div>
-
-            <div className="chat-message">
-              <button
-                className="chat-message__reply-btn"
-                onClick={(): void => onReply(msg)}
-                title="Ответить"
-              >
-                <ReplyIcon />
-              </button>
-
-              {msg.replyTo && (
-                <div
-                  className="chat-message__reply"
-                  onClick={(): void => handleJumpToMessage(msg.replyTo!.id)}
-                  title="Перейти к сообщению"
-                >
-                  {msg.replyTo.senderAvatar ? (
-                    <img
-                      src={msg.replyTo.senderAvatar}
-                      alt={msg.replyTo.senderNickname}
-                      className="chat-message__reply-avatar"
-                    />
-                  ) : (
-                    <div className="chat-message__reply-avatar chat-message__reply-avatar--placeholder">
-                      {msg.replyTo.senderNickname.charAt(0).toUpperCase() || 'A'}
-                    </div>
-                  )}
-                  <span className="chat-message__reply-sender">{msg.replyTo.senderNickname}</span>
-                  <span className="chat-message__reply-text">{msg.replyTo.text}</span>
-                </div>
-              )}
-
-              {!isGrouped && (
-                <div className="chat-message__meta">
-                  <span className="chat-message__sender">{msg.senderNickname}</span>
-                  <span className="chat-message__timestamp">{formatFullDate(msg.createdAt)}</span>
-                </div>
-              )}
-
-              <div className="chat-message__text">{msg.text}</div>
-            </div>
-          </div>
+            msg={msg}
+            isGrouped={isGrouped}
+            isHighlighted={highlightedId === msg.id}
+            onContextMenu={handleContextMenu}
+            onReply={onReply}
+            onJumpToMessage={handleJumpToMessage}
+          />
         );
       })}
       <div ref={messagesEndRef} />
@@ -216,7 +99,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           x={menuState.x}
           y={menuState.y}
           items={getMenuActions(menuState.message)}
-          onClose={(): void => setMenuState(null)}
+          onClose={closeMenu}
         />
       )}
     </div>
