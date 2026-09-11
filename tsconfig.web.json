@@ -13,6 +13,7 @@
       "@renderer/*": [
         "./src/renderer/src/*"
       ]
-    }
+    },
+    "types": ["vite-plugin-svgr/client"]
   }
 }

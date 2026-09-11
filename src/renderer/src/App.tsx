@@ -45,9 +45,7 @@ function App(): React.JSX.Element {
           const incoming: Message = data.payload;
           if (incoming.senderId === user.id) return;
           setMessages((prev) => [...prev, incoming]);
-        }
-        // Ловим сетевое удаление от других участников
-        else if (data.type === 'delete-message') {
+        } else if (data.type === 'delete-message') {
           const { id } = data.payload;
           setMessages((prev) => prev.filter((msg) => msg.id !== id));
           if (replyTo?.id === id) {
@@ -91,13 +89,11 @@ function App(): React.JSX.Element {
   };
 
   const deleteMessage = (messageId: string): void => {
-    // 1. Локальное удаление
     setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     if (replyTo?.id === messageId) {
       setReplyTo(null);
     }
 
-    // 2. Отправка по сети события удаления
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'delete-message', payload: { id: messageId } }));
     }
