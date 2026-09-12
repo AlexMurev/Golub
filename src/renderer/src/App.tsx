@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
-import Chat, { Message } from '@renderer/components/Chat/Chat';
+import Chat from '@renderer/components/Chat/Chat';
+import { Message } from './types/chat';
 import { Settings } from '@renderer/components/Settings/Settings';
 import { UserBar } from '@renderer/components/UserBar/UserBar';
 import { useUser } from '@renderer/hooks/useUser';
@@ -103,8 +104,8 @@ function App(): React.JSX.Element {
     <div className="app-layout">
       <Group orientation="horizontal">
         <Panel
-          defaultSize={250}
-          minSize={250}
+          defaultSize={300}
+          minSize={200}
           maxSize={400}
           className="sidebar"
           groupResizeBehavior="preserve-pixel-size"
@@ -140,22 +141,21 @@ function App(): React.JSX.Element {
         </Panel>
       </Group>
 
-      {isSettingsOpen && (
-        <Settings
-          nickname={user.nickname}
-          setNickname={(value: string): void => updateUser({ nickname: value })}
-          avatar={user.avatar}
-          setAvatar={(value: string): void => updateUser({ avatar: value })}
-          userId={user.id}
-          serverAddress={serverAddress}
-          setServerAddress={setServerAddress}
-          isServerRunning={isServerRunning}
-          startServer={startServer}
-          connectToServer={connectToServer}
-          isConnected={ws !== null}
-          onClose={(): void => setIsSettingsOpen(false)}
-        />
-      )}
+      <Settings
+        isOpen={isSettingsOpen}
+        nickname={user.nickname}
+        setNickname={(value: string): void => updateUser({ nickname: value })}
+        avatar={user.avatar}
+        setAvatar={(value: string): void => updateUser({ avatar: value })}
+        userId={user.id}
+        serverAddress={serverAddress}
+        setServerAddress={setServerAddress}
+        isServerRunning={isServerRunning}
+        startServer={startServer}
+        connectToServer={connectToServer}
+        isConnected={ws !== null}
+        onClose={(): void => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

@@ -9,7 +9,7 @@
   --bg-elevated: #404249;      /* Верхний слой: ховеры элементов, всплывающие окна, фокус */
   
   /* Хинт для оверлеев модальных окон */
-  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
 
   /* ==========================================================================
      ТЕКСТ И ИКОНКИ (Семантическая иерархия)
@@ -64,4 +64,29 @@ body {
   color: var(--text-primary);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+}
+
+.titlebar {
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  padding-left: 10px;
+  font-size: 20px;
+  -webkit-app-region: drag;
+  margin-left: env(titlebar-area-x, 0);
+  width:       env(titlebar-area-width, 100%);
+  height:      env(titlebar-area-height, 30px);
+  box-sizing: border-box;
+  flex-shrink: 0; 
+}
+
+#root {
+  border: 1px solid var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }

@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useModalAnimation } from '../../hooks/useModalAnimation';
 import './Settings.css';
 
 interface SettingsProps {
@@ -14,6 +15,7 @@ interface SettingsProps {
   connectToServer: () => void;
   isConnected: boolean;
   onClose: () => void;
+  isOpen: boolean;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -28,9 +30,31 @@ export const Settings: React.FC<SettingsProps> = ({
   startServer,
   connectToServer,
   isConnected,
-  onClose
-}): React.JSX.Element => {
+  onClose,
+  isOpen
+}): React.JSX.Element | null => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { shouldRender, animationClass, handleAnimationEnd } = useModalAnimation(isOpen, onClose);
+
+  useEffect(() => {
+    let timerId: NodeJS.Timeout;
+
+    if (isOpen) {
+      timerId = setTimeout(() => {
+        window.api.setTitlebarColor('#10101026');
+      }, 30);
+    } else {
+      timerId = setTimeout(() => {
+        window.api.setTitlebarColor('#2b2d31');
+      }, 160);
+    }
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [isOpen]);
+
+  if (!shouldRender) return null;
 
   const handleAvatarClick = (): void => {
     fileInputRef.current?.click();
@@ -39,7 +63,6 @@ export const Settings: React.FC<SettingsProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
-      // Валидация размера (например, до 2МБ)
       if (file.size > 2 * 1024 * 1024) {
         alert('Файл слишком большой. Максимальный размер — 2МБ.');
         return;
@@ -56,7 +79,11 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="settings-overlay" onClick={onClose}>
+    <div
+      className={`settings-overlay ${animationClass}`}
+      onClick={onClose}
+      onAnimationEnd={handleAnimationEnd}
+    >
       <div className="settings" onClick={(e: React.MouseEvent): void => e.stopPropagation()}>
         <header className="settings__header">
           <h2 className="settings__title">Настройки</h2>
@@ -69,7 +96,6 @@ export const Settings: React.FC<SettingsProps> = ({
           <section className="settings__section">
             <h3 className="settings__section-title">Профиль</h3>
 
-            {/* Интерактивная смена аватарки в стиле Discord */}
             <div className="settings__avatar-selector">
               <input
                 type="file"

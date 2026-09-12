@@ -16,10 +16,26 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     icon: windowIcon,
+    titleBarStyle: 'hidden',
+    titleBarOverlay:
+      process.platform === 'darwin'
+        ? false
+        : {
+            color: '#2b2d31',
+            symbolColor: '#fff',
+            height: 30
+          },
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  });
+
+  ipcMain.on('set-titlebar-color', (_event, color) => {
+    mainWindow.setTitleBarOverlay({
+      color: color,
+      symbolColor: '#fff'
+    });
   });
 
   let wss: WebSocketServer | null = null;

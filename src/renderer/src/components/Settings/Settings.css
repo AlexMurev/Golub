@@ -217,3 +217,39 @@
 .settings__avatar-preview-wrapper:hover .settings__avatar-overlay {
   opacity: 1;
 }
+
+/* Анимации */
+
+@keyframes settingsFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes settingsScaleUp {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes settingsFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes settingsScaleDown {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.92); }
+}
+
+.settings-overlay--open {
+  animation: settingsFadeIn 0.2s ease-out forwards;
+}
+.settings-overlay--open .settings {
+  animation: settingsScaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.settings-overlay--closing {
+  animation: settingsFadeOut 0.2s ease-in forwards;
+}
+.settings-overlay--closing .settings {
+  animation: settingsScaleDown 0.2s ease-in forwards;
+}

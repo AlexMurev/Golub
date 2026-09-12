@@ -3,7 +3,8 @@ import { electronAPI } from '@electron-toolkit/preload';
 
 // Custom APIs for renderer
 const api = {
-  startServer: (port: number) => ipcRenderer.invoke('start-server', port)
+  startServer: (port: number) => ipcRenderer.invoke('start-server', port),
+  setTitlebarColor: (color: string) => ipcRenderer.send('set-titlebar-color', color)
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
