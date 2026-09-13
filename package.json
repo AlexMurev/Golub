@@ -1,7 +1,7 @@
 {
   "name": "Golub",
-  "version": "0.1.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "0.1.1",
+  "description": "It's messenger",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
