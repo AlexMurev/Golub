@@ -9,12 +9,26 @@
 }
 
 .settings {
-  width: 18.5rem;
-  max-width: 90vw;
+  width: clamp(900px, 85vw, 1500px);
+  height: clamp(600px, 85vh, 1400px);
+  
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  overflow-x: hidden;
+}
+
+@media (max-width: 900px) {
+  .settings {
+    width: 100vw;
+  }
+}
+
+@media (max-height: 660px) {
+  .settings {
+    height: calc(100vh - 30px); 
+    margin-top: 30px; 
+  }
 }
 
 .settings__header {
