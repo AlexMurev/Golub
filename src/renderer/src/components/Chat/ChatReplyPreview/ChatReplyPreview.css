@@ -6,7 +6,7 @@
   padding: 8px 14px;
   background: var(--bg-primary);
   border-left: 4px solid var(--accent-primary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
 }
 
 .chat-reply-preview__content {

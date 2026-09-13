@@ -6,7 +6,7 @@
   margin: 8px;
   padding: 8px 12px;
   background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -101,7 +101,7 @@
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   cursor: pointer;
   transition: color var(--transition-fast), background var(--transition-fast);
 }
