@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useModalAnimation } from '../../hooks/useModalAnimation';
 import './Settings.css';
+
+type UpdateStatus = 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'ready';
 
 interface SettingsProps {
   nickname: string;
@@ -35,23 +37,47 @@ export const Settings: React.FC<SettingsProps> = ({
 }): React.JSX.Element | null => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Состояние для управления текстом и поведением кнопки
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
+
   const { shouldRender, animationClass, handleAnimationEnd } = useModalAnimation(isOpen, onClose);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
 
     if (isOpen) {
-      timerId = setTimeout(() => {
+      timerId = setTimeout((): void => {
         window.api.setTitlebarColor('#10101026');
       }, 30);
     } else {
-      timerId = setTimeout(() => {
+      timerId = setTimeout((): void => {
         window.api.setTitlebarColor('#2b2d31');
       }, 160);
     }
-    return () => {
+    return (): void => {
       clearTimeout(timerId);
     };
+  }, [isOpen]);
+
+  // Слушаем статусы обновлений из main процесса, когда окно открыто
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (window.api && typeof window.api.onUpdateStatus === 'function') {
+      const unsubscribe = window.api.onUpdateStatus((status: UpdateStatus): void => {
+        setUpdateStatus(status);
+
+        if (status === 'not-available') {
+          alert('У вас установлена последняя версия.');
+          setUpdateStatus('idle');
+        }
+      });
+
+      return (): void => {
+        unsubscribe();
+      };
+    }
+    return undefined;
   }, [isOpen]);
 
   if (!shouldRender) return null;
@@ -75,6 +101,31 @@ export const Settings: React.FC<SettingsProps> = ({
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Обработка клика по кнопке в зависимости от текущей фазы
+  const handleUpdateClick = (): void => {
+    if (updateStatus === 'idle') {
+      window.api.checkForUpdates();
+    } else if (updateStatus === 'available' || updateStatus === 'ready') {
+      window.api.downloadAndInstall();
+    }
+  };
+
+  // Возврат строки для кнопки без any
+  const getUpdateButtonText = (): string => {
+    switch (updateStatus) {
+      case 'checking':
+        return 'Проверка...';
+      case 'available':
+        return 'Скачать обновление';
+      case 'downloading':
+        return 'Скачивание...';
+      case 'ready':
+        return 'Обновить и перезапустить';
+      default:
+        return 'Проверить обновления';
     }
   };
 
@@ -169,6 +220,15 @@ export const Settings: React.FC<SettingsProps> = ({
                 onClick={connectToServer}
               >
                 {isConnected ? 'Отключиться' : 'Подключиться'}
+              </button>
+
+              {/* Чистая кнопка без лишней разметки */}
+              <button
+                className={`settings__button ${updateStatus === 'ready' ? 'settings__button--success' : ''}`}
+                onClick={handleUpdateClick}
+                disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
+              >
+                {getUpdateButtonText()}
               </button>
             </div>
           </section>

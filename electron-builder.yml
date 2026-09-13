@@ -39,10 +39,10 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: github
-  owner: AlexMurev
-  repo: Golub
-  releaseType: draft
+  - provider: github
+    owner: AlexMurev
+    repo: Golub
+    releaseType: draft
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 electronLanguages:

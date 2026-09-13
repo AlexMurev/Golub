@@ -4,7 +4,14 @@ import { electronAPI } from '@electron-toolkit/preload';
 // Custom APIs for renderer
 const api = {
   startServer: (port: number) => ipcRenderer.invoke('start-server', port),
-  setTitlebarColor: (color: string) => ipcRenderer.send('set-titlebar-color', color)
+  setTitlebarColor: (color: string) => ipcRenderer.send('set-titlebar-color', color),
+  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+  downloadAndInstall: () => ipcRenderer.send('download-and-install'),
+  onUpdateStatus: (callback) => {
+    const listener = (_event, status): void => callback(status);
+    ipcRenderer.on('update-status', listener);
+    return () => ipcRenderer.removeListener('update-status', listener);
+  }
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
