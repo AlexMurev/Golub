@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import { ContextMenu, ContextMenuItem } from '@renderer/components/ContextMenu/ContextMenu';
 import type { Message } from '@shared/types';
-import { useChatScroll } from '@renderer/hooks/useChatScroll';
 import { useMessageContextMenu } from '@renderer/hooks/useMessageContextMenu';
 import { ChatMessageItem } from './ChatMessageItem/ChatMessageItem';
 import './ChatMessages.css';
@@ -12,24 +12,36 @@ import EditIcon from '@renderer/assets/edit.svg?react';
 import DeleteIcon from '@renderer/assets/delete.svg?react';
 
 interface ChatMessagesProps {
+  chatId: string | null;
   messages: Message[];
   myId: string;
+  firstItemIndex: number;
+  isLoading: boolean;
+  hasMore: boolean;
+  isLoadingOlder: boolean;
+  onLoadOlder: () => void;
   onReply: (message: Message) => void;
   onEdit: (msg: { id: string; text: string }) => void;
   onDelete: (messageId: string) => void;
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
+  chatId,
   messages,
   myId,
+  firstItemIndex,
+  isLoading,
+  hasMore,
+  isLoadingOlder,
+  onLoadOlder,
   onReply,
   onEdit,
   onDelete
 }): React.JSX.Element => {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-
-  const { messagesEndRef, handleScroll } = useChatScroll(messages, myId);
   const { menuState, handleContextMenu, closeMenu } = useMessageContextMenu();
+
+  const visible = useMemo(() => messages.filter((m) => !m.deletedAt), [messages]);
 
   const handleCopyText = (text: string): void => {
     navigator.clipboard.writeText(text).catch((err: unknown) => {
@@ -37,14 +49,14 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     });
   };
 
-  const handleJumpToMessage = (targetId: string): void => {
+  const handleJumpToMessage = useCallback((targetId: string): void => {
     const targetElement = document.getElementById(`msg-${targetId}`);
     if (targetElement) {
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setHighlightedId(targetId);
       setTimeout((): void => setHighlightedId(null), 1000);
     }
-  };
+  }, []);
 
   const getMenuActions = (msg: Message): ContextMenuItem[] => {
     const actions: ContextMenuItem[] = [
@@ -77,32 +89,61 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     return actions;
   };
 
+  // Не монтируем Virtuoso, пока не пришли данные — иначе initialTopMostItemIndex
+  // вычисляется от пустого массива, и позиция скролла оказывается неверной.
+  if (isLoading || visible.length === 0) {
+    return (
+      <div className="chat-messages">
+        <div className="chat-messages__loader">{isLoading ? 'Загрузка...' : 'Нет сообщений'}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="chat-messages" onScroll={handleScroll}>
-      {messages.map((msg: Message, index: number): React.JSX.Element | null => {
-        const prevMsg: Message | null = index > 0 ? messages[index - 1] : null;
+    <div className="chat-messages">
+      <Virtuoso
+        key={chatId ?? 'empty'}
+        data={visible}
+        firstItemIndex={firstItemIndex}
+        initialTopMostItemIndex={visible.length - 1}
+        followOutput={(isAtBottom: boolean): false | 'smooth' => (isAtBottom ? 'smooth' : false)}
+        startReached={(): void => {
+          if (hasMore && !isLoadingOlder) onLoadOlder();
+        }}
+        itemContent={(index, msg): React.JSX.Element => {
+          // index — глобальный индекс Virtuoso (с учётом firstItemIndex).
+          // localIndex — реальная позиция в массиве visible.
+          const localIndex: number = index - firstItemIndex;
+          const prevMsg: Message | null = localIndex > 0 ? visible[localIndex - 1] : null;
 
-        const isGrouped: boolean = !!(
-          prevMsg &&
-          !prevMsg.deletedAt &&
-          prevMsg.senderId === msg.senderId &&
-          !msg.replyTo &&
-          msg.createdAt - prevMsg.createdAt < 300000
-        );
+          const isGrouped: boolean = !!(
+            prevMsg &&
+            prevMsg.senderId === msg.senderId &&
+            !msg.replyTo &&
+            msg.createdAt - prevMsg.createdAt < 300000
+          );
 
-        return (
-          <ChatMessageItem
-            key={msg.id}
-            msg={msg}
-            isGrouped={isGrouped}
-            isHighlighted={highlightedId === msg.id}
-            onContextMenu={handleContextMenu}
-            onReply={onReply}
-            onJumpToMessage={handleJumpToMessage}
-          />
-        );
-      })}
-      <div ref={messagesEndRef} />
+          return (
+            <div className="chat-messages__row">
+              <ChatMessageItem
+                msg={msg}
+                isGrouped={isGrouped}
+                isHighlighted={highlightedId === msg.id}
+                onContextMenu={handleContextMenu}
+                onReply={onReply}
+                onJumpToMessage={handleJumpToMessage}
+              />
+            </div>
+          );
+        }}
+        components={{
+          Header: (): React.JSX.Element | null =>
+            isLoadingOlder ? <div className="chat-messages__loader">Загрузка истории...</div> : null
+        }}
+        increaseViewportBy={{ top: 600, bottom: 200 }}
+        atBottomThreshold={50}
+        className="chat-messages__list"
+      />
 
       {menuState && (
         <ContextMenu

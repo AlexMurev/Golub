@@ -24,6 +24,11 @@ function App(): React.JSX.Element {
   const { chats, currentChatId, selectChat, openDirectChat, reload: reloadChats } = useChats();
   const {
     messages,
+    isLoading,
+    hasMore,
+    isLoadingOlder,
+    firstItemIndex,
+    loadOlder,
     sendMessage: sendMsg,
     editMessage: editMsg,
     deleteMessage
@@ -112,7 +117,6 @@ function App(): React.JSX.Element {
     await reloadContacts();
     await reloadChats();
 
-    // Открываем чат только если контакт уже accepted (авто-accept при коллизии)
     if (result.contact.contactStatus === 'accepted') {
       await openDirectChat(result.contact.peerId);
     }
@@ -133,6 +137,10 @@ function App(): React.JSX.Element {
   const handleCancelRequest = async (peerId: string): Promise<void> => {
     await window.api.db.users.cancelRequest(peerId);
     await reloadContacts();
+  };
+
+  const handleLoadOlder = (): void => {
+    void loadOlder();
   };
 
   return (
@@ -168,6 +176,11 @@ function App(): React.JSX.Element {
               chat={currentChat}
               messages={messages}
               myId={self.peerId}
+              firstItemIndex={firstItemIndex}
+              isLoading={isLoading}
+              hasMore={hasMore}
+              isLoadingOlder={isLoadingOlder}
+              onLoadOlder={handleLoadOlder}
               input={input}
               setInput={setInput}
               sendMessage={handleSendOrEdit}

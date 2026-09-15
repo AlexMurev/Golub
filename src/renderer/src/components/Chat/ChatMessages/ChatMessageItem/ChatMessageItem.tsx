@@ -103,7 +103,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
 
           {isVideo && firstUrl && (
             <div className="message__video">
-              <ReactPlayer src={firstUrl} width="100%" height="240px" controls />
+              <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
             </div>
           )}
 

@@ -11,6 +11,11 @@ interface ChatProps {
   chat: ChatListItem;
   messages: Message[];
   myId: string;
+  firstItemIndex: number;
+  isLoading: boolean;
+  hasMore: boolean;
+  isLoadingOlder: boolean;
+  onLoadOlder: () => void;
   input: string;
   setInput: (value: string) => void;
   sendMessage: () => void;
@@ -26,6 +31,11 @@ const Chat: React.FC<ChatProps> = ({
   chat,
   messages,
   myId,
+  firstItemIndex,
+  isLoading,
+  hasMore,
+  isLoadingOlder,
+  onLoadOlder,
   input,
   setInput,
   sendMessage,
@@ -47,7 +57,9 @@ const Chat: React.FC<ChatProps> = ({
     });
 
     setTimeout((): void => {
-      const inputEl = document.querySelector('.chat-input-area__message') as HTMLInputElement;
+      const inputEl = document.querySelector(
+        '.chat-input-area__message'
+      ) as HTMLTextAreaElement | null;
       if (inputEl) inputEl.focus();
     }, 0);
   };
@@ -69,8 +81,14 @@ const Chat: React.FC<ChatProps> = ({
       />
 
       <ChatMessages
+        chatId={chat.id}
         messages={messages}
         myId={myId}
+        firstItemIndex={firstItemIndex}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        isLoadingOlder={isLoadingOlder}
+        onLoadOlder={onLoadOlder}
         onReply={handleReply}
         onDelete={deleteMessage}
         onEdit={onStartEdit}
