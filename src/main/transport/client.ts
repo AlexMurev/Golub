@@ -169,8 +169,9 @@ export function createClient(callbacks: ClientCallbacks): TransportClient {
       });
 
       ws.on('error', (err): void => {
-        console.error(`WS error to ${peerId}:`, err.message);
-        // 'close' event всегда идёт после 'error', так что finish будет там
+        if (!err.message.includes('ECONNREFUSED')) {
+          console.warn(`WS error to ${peerId}:`, err.message);
+        }
       });
     });
   }

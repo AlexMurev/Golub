@@ -144,3 +144,13 @@ export function softDeleteMessage(id: string): void {
 export function setMessageStatus(id: string, status: MessageStatus): void {
   getDb().prepare('UPDATE messages SET status = ? WHERE id = ?').run(status, id);
 }
+
+export function listPendingForChat(chatId: string): Message[] {
+  const rows = getDb()
+    .prepare(
+      `${SELECT_WITH_JOINS} WHERE m.chatId = ? AND m.status = 'pending'
+       ORDER BY m.createdAt ASC`
+    )
+    .all(chatId) as MessageRaw[];
+  return rows.map(toMessage);
+}

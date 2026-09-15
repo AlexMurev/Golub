@@ -21,7 +21,12 @@ import {
   setContactStatus,
   removeUser
 } from './db/repositories/usersRepo';
-import { ensureDirectChat, listChatItems, touchChat } from './db/repositories/chatsRepo';
+import {
+  ensureDirectChat,
+  getDirectChatId,
+  listChatItems,
+  touchChat
+} from './db/repositories/chatsRepo';
 import {
   insertMessage,
   upsertMessage,
@@ -29,15 +34,45 @@ import {
   softDeleteMessage,
   setMessageStatus,
   listMessages,
-  getMessage
+  getMessage,
+  listPendingForChat
 } from './db/repositories/messagesRepo';
 import type { Message } from '@shared/types';
+import { getLinkPreview } from 'link-preview-js';
 
 function peerFromDirectChat(chatId: string, selfId: string): string | null {
   const parts = chatId.split(':');
   if (parts.length !== 3 || parts[0] !== 'direct') return null;
   const [, a, b] = parts;
   return a === selfId ? b : a;
+}
+
+async function flushPendingForPeer(peerId: string): Promise<number> {
+  const self = getSelf();
+  if (!self) return 0;
+
+  const chatId = getDirectChatId(self.peerId, peerId);
+  const pending = listPendingForChat(chatId);
+  let sent = 0;
+
+  for (const msg of pending) {
+    // Восстанавливаем payload как при обычной отправке
+    const payload = {
+      ...msg,
+      replyTo: msg.replyTo ? { id: msg.replyTo.id } : null
+    };
+    const ok = await sendTo(peerId, { type: 'message', payload });
+    if (ok) {
+      setMessageStatus(msg.id, 'sent');
+      sent++;
+    }
+  }
+
+  if (sent > 0) {
+    console.log(`Flushed ${sent} pending messages to ${peerId}`);
+    return sent;
+  }
+  return 0;
 }
 
 export function initIpc(mainWindow: BrowserWindow): void {
@@ -122,7 +157,11 @@ export function initIpc(mainWindow: BrowserWindow): void {
     }
   });
 
-  onPeerOnline((peerId) => send('transport:peerOnline', peerId));
+  onPeerOnline(async (peerId) => {
+    send('transport:peerOnline', peerId);
+    const flushed = await flushPendingForPeer(peerId);
+    if (flushed > 0) notifyDataChanged();
+  });
   onPeerOffline((peerId) => send('transport:peerOffline', peerId));
   onNewPeer((peerId) => send('transport:newPeer', peerId));
   onPeerUpdated((peerId) => send('transport:peerUpdated', peerId));
@@ -349,15 +388,17 @@ export function initIpc(mainWindow: BrowserWindow): void {
       touchChat(chatId);
       notifyDataChanged();
 
-      const sent = await sendTo(peerId, {
-        type: 'message',
-        payload: { ...message, replyTo: replyToId ? { id: replyToId } : null }
+      // Отправляем в фоне — не блокируем ответ renderer'у
+      const payload = {
+        ...message,
+        replyTo: replyToId ? { id: replyToId } : null
+      };
+      void sendTo(peerId, { type: 'message', payload }).then((sent) => {
+        if (sent) {
+          setMessageStatus(message.id, 'sent');
+          notifyDataChanged();
+        }
       });
-
-      if (sent) {
-        setMessageStatus(message.id, 'sent');
-        message.status = 'sent';
-      }
 
       return { success: true, message };
     }
@@ -405,5 +446,17 @@ export function initIpc(mainWindow: BrowserWindow): void {
     notifyDataChanged();
 
     return { success: true };
+  });
+
+  ipcMain.handle('link:preview', async (_, url: string) => {
+    try {
+      const data = await getLinkPreview(url, {
+        timeout: 5000,
+        headers: { 'user-agent': 'Golub/1.0' }
+      });
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   });
 }

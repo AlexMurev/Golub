@@ -1,8 +1,17 @@
 import Database from 'better-sqlite3';
-import { join } from 'path';
+import { join, isAbsolute } from 'path';
 import { migrations, Migration } from './migrations';
 import { getDataDir } from '../paths';
 import { mkdirSync } from 'fs';
+
+import { app } from 'electron';
+const dataOverride = process.env.GOLUB_DATA_DIR;
+if (dataOverride) {
+  const userDataPath = isAbsolute(dataOverride)
+    ? dataOverride
+    : join(app.getAppPath(), dataOverride);
+  app.setPath('userData', userDataPath);
+}
 
 let db: Database.Database | null = null;
 

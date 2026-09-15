@@ -13,7 +13,9 @@ const api = {
       ipcRenderer.removeListener('update-status', listener);
     };
   },
-
+  link: {
+    getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)
+  },
   transport: {
     getMyInfo: () => ipcRenderer.invoke('transport:getMyInfo'),
     isConnectedTo: (peerId: string) => ipcRenderer.invoke('transport:isConnectedTo', peerId),

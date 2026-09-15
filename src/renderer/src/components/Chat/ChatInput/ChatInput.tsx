@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import './ChatInput.css';
+import React, { useEffect, useRef, useState } from 'react';
 import SendIcon from '@renderer/assets/send.svg?react';
+import './ChatInput.css';
 
 interface ChatInputProps {
   input: string;
@@ -10,6 +10,9 @@ interface ChatInputProps {
   hasReply: boolean;
 }
 
+const MAX_ROWS = 8;
+const LINE_HEIGHT = 20;
+
 export const ChatInput: React.FC<ChatInputProps> = ({
   input,
   setInput,
@@ -18,8 +21,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   hasReply
 }): React.JSX.Element => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  // Автовысота textarea в зависимости от содержимого
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    el.style.height = 'auto';
+    const maxHeight = LINE_HEIGHT * MAX_ROWS + 20; // + padding
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [input]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -30,16 +45,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     <div
       className={`chat-input-area ${isFocused ? 'chat-input-area--focused' : ''} ${!isConnected ? 'chat-input-area--disabled' : ''}`}
     >
-      <input
+      <textarea
+        ref={textareaRef}
         className="chat-input-area__message"
-        type="text"
         value={input}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setInput(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>): void => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={(): void => setIsFocused(true)}
         onBlur={(): void => setIsFocused(false)}
         placeholder={hasReply ? 'Введите ответ...' : 'Введите сообщение...'}
         disabled={!isConnected}
+        rows={1}
       />
       <button
         className="chat-input-area__send-button"

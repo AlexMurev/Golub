@@ -10,6 +10,10 @@ function toUser(raw: UserRaw | undefined): User | null {
   return { ...raw, isSelf: raw.isSelf === 1 };
 }
 
+export function touchUserLastSeen(peerId: string): void {
+  getDb().prepare('UPDATE users SET lastSeenAt = ? WHERE peerId = ?').run(Date.now(), peerId);
+}
+
 export function getSelf(): User | null {
   const row = getDb().prepare('SELECT * FROM users WHERE isSelf = 1 LIMIT 1').get() as
     UserRaw | undefined;

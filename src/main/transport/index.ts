@@ -6,7 +6,8 @@ import {
   getUser,
   listUsers,
   ensureUser,
-  updateUserAddress
+  updateUserAddress,
+  touchUserLastSeen
 } from '../db/repositories/usersRepo';
 import { getMyLanAddress } from './net';
 
@@ -193,10 +194,14 @@ async function autoConnectAll(): Promise<void> {
   for (const u of listUsers()) {
     if (!u.address) continue;
     if (activeConnections.has(u.peerId)) continue;
+
+    // Пропускаем тех, кого мы ещё не видели онлайн
+    if (u.lastSeenAt === null) continue;
+
     try {
       await client.ensureConnection(u.peerId, u.address);
     } catch {
-      // peer offline — молча, повторим через 30 сек
+      // offline
     }
   }
 }
@@ -283,6 +288,7 @@ function registerConnection(peerId: string, ws: WebSocket, direction: 'in' | 'ou
   if (!existing || existing.ws.readyState !== WebSocket.OPEN) {
     const hadConnection = !!existing;
     activeConnections.set(peerId, { ws, direction });
+    touchUserLastSeen(peerId);
     if (!hadConnection) {
       for (const cb of onlineListeners) cb(peerId);
     }
@@ -308,6 +314,7 @@ function registerConnection(peerId: string, ws: WebSocket, direction: 'in' | 'ou
       /* ignore */
     }
     activeConnections.set(peerId, { ws, direction });
+    touchUserLastSeen(peerId);
     return;
   }
 

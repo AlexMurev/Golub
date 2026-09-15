@@ -30,8 +30,12 @@
     "better-sqlite3": "^13.0.3",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.3.9",
+    "link-preview-js": "^5.0.0",
     "react-markdown": "^10.1.0",
+    "react-player": "^3.4.0",
     "react-resizable-panels": "^4.12.4",
+    "react-simplemde-editor": "^5.2.0",
+    "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "vite-plugin-svgr": "^5.2.0",
     "ws": "^8.21.3"

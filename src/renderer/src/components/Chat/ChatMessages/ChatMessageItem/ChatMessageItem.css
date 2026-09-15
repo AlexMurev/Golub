@@ -207,3 +207,11 @@
   color: var(--text-muted);
   margin-left: 4px;
 }
+
+.message__video {
+  margin-top: 8px;
+  max-width: 480px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+}

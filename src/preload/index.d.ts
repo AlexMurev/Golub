@@ -6,7 +6,9 @@ interface API {
   checkForUpdates: () => void;
   downloadAndInstall: () => void;
   onUpdateStatus: (cb: (status: UpdateStatus) => void) => () => void;
-
+  link: {
+    getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  };
   transport: {
     getMyInfo: () => Promise<{
       peerId: string;

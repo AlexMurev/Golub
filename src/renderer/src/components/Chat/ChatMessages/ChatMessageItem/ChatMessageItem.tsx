@@ -1,7 +1,10 @@
 import React from 'react';
+import ReactPlayer from 'react-player';
 import type { Message } from '@shared/types';
 import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
 import ReplyIcon from '@renderer/assets/reply.svg?react';
+import { MessageText } from './MessageText';
+import { LinkPreview } from './LinkPreview';
 import './ChatMessageItem.css';
 
 interface ChatMessageItemProps {
@@ -11,6 +14,15 @@ interface ChatMessageItemProps {
   onContextMenu: (e: React.MouseEvent, msg: Message) => void;
   onReply: (msg: Message) => void;
   onJumpToMessage: (targetId: string) => void;
+}
+
+function extractFirstUrl(text: string): string | null {
+  const match = text.match(/https?:\/\/[^\s]+/);
+  return match ? match[0] : null;
+}
+
+function isVideoUrl(url: string): boolean {
+  return /(?:youtube\.com|youtu\.be|vimeo\.com|twitch\.tv|dailymotion\.com)/i.test(url);
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
@@ -26,6 +38,9 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
 
     const avatarPlaceholder: string = msg.senderNickname.charAt(0).toUpperCase() || 'A';
     const replyPlaceholder: string = msg.replyTo?.senderNickname.charAt(0).toUpperCase() || 'A';
+
+    const firstUrl: string | null = extractFirstUrl(msg.text);
+    const isVideo: boolean = firstUrl !== null && isVideoUrl(firstUrl);
 
     return (
       <div
@@ -84,7 +99,15 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
             </div>
           )}
 
-          <div className="message__text">{msg.text}</div>
+          <MessageText text={msg.text} />
+
+          {isVideo && firstUrl && (
+            <div className="message__video">
+              <ReactPlayer src={firstUrl} width="100%" height="240px" controls />
+            </div>
+          )}
+
+          {!isVideo && firstUrl && <LinkPreview url={firstUrl} />}
         </div>
       </div>
     );

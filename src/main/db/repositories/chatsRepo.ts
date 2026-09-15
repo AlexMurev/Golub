@@ -1,7 +1,7 @@
 import { getDb } from '../index';
 import type { Chat, ChatListItem, ChatMember, Message, ChatRole } from '@shared/types';
 
-function getDirectChatId(a: string, b: string): string {
+export function getDirectChatId(a: string, b: string): string {
   const [x, y] = [a, b].sort();
   return `direct:${x}:${y}`;
 }
