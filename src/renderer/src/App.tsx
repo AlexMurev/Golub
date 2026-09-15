@@ -1,103 +1,138 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import Chat from '@renderer/components/Chat/Chat';
-import { Message } from './types/chat';
+import { Sidebar } from '@renderer/components/Sidebar/Sidebar';
+import { EmptyState } from '@renderer/components/EmptyState/EmptyState';
 import { Settings } from '@renderer/components/Settings/Settings';
-import { UserBar } from '@renderer/components/UserBar/UserBar';
-import { useUser } from '@renderer/hooks/useUser';
+import { AddContactModal } from '@renderer/components/AddContactModal/AddContactModal';
+import { FriendRequestsModal } from '@renderer/components/FriendRequestsModal/FriendRequestsModal';
+import { useSelf } from '@renderer/hooks/useSelf';
+import { useContacts } from '@renderer/hooks/useContacts';
+import { useChats } from '@renderer/hooks/useChats';
+import { useMessages } from '@renderer/hooks/useMessages';
+import type { ReplyPreview } from '@shared/types';
 import './App.css';
 
+interface EditTarget {
+  id: string;
+  text: string;
+}
+
 function App(): React.JSX.Element {
-  const [user, updateUser] = useUser();
-  const [isServerRunning, setIsServerRunning] = useState<boolean>(false);
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { self, updateSelf, isLoading: isSelfLoading } = useSelf();
+  const { incoming, outgoing, incomingCount, reload: reloadContacts } = useContacts();
+  const { chats, currentChatId, selectChat, openDirectChat, reload: reloadChats } = useChats();
+  const {
+    messages,
+    sendMessage: sendMsg,
+    editMessage: editMsg,
+    deleteMessage
+  } = useMessages(currentChatId, self?.peerId ?? null);
+
   const [input, setInput] = useState<string>('');
-  const [serverAddress, setServerAddress] = useState<string>('ws://localhost:8080');
-  const [replyTo, setReplyTo] = useState<NonNullable<Message['replyTo']> | null>(null);
+  const [replyTo, setReplyTo] = useState<ReplyPreview | null>(null);
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isAddContactOpen, setIsAddContactOpen] = useState<boolean>(false);
+  const [isRequestsOpen, setIsRequestsOpen] = useState<boolean>(false);
+  const [myAddress, setMyAddress] = useState<string | null>(null);
 
-  const startServer = async (): Promise<void> => {
-    const result = await window.api.startServer(8080);
-    if (result.success) {
-      setIsServerRunning(true);
-      connectToServer();
-    } else {
-      alert('Ошибка: ' + result.error);
-    }
-  };
+  useEffect((): (() => void) => {
+    let cancelled = false;
 
-  const connectToServer = (): void => {
-    if (ws) {
-      ws.close();
-      setWs(null);
-      return;
-    }
-    const newWs = new WebSocket(serverAddress);
-    newWs.onopen = (): void => {
-      console.log('Подключено к серверу');
-      setWs(newWs);
-    };
-    newWs.onmessage = (event: MessageEvent): void => {
+    (async (): Promise<void> => {
       try {
-        const data = JSON.parse(event.data);
-
-        if (data.type === 'message') {
-          const incoming: Message = data.payload;
-          if (incoming.senderId === user.id) return;
-          setMessages((prev) => [...prev, incoming]);
-        } else if (data.type === 'delete-message') {
-          const { id } = data.payload;
-          setMessages((prev) => prev.filter((msg) => msg.id !== id));
-          if (replyTo?.id === id) {
-            setReplyTo(null);
-          }
-        }
-      } catch (e) {
-        console.error('Ошибка парсинга входящего сообщения:', e);
+        const info = await window.api.transport.getMyInfo();
+        if (!cancelled && info) setMyAddress(info.address);
+      } catch (err) {
+        console.error('Failed to load transport info:', err);
       }
-    };
-    newWs.onclose = (): void => {
-      console.log('Отключено от сервера');
-      setWs(null);
-    };
-  };
+    })();
 
-  const sendMessage = (): void => {
-    if (ws && input.trim()) {
-      const message: Message = {
-        id: Date.now().toString(),
-        senderId: user.id,
-        senderNickname: user.nickname,
-        senderAvatar: user.avatar,
-        text: input,
-        createdAt: Date.now(),
-        replyTo: replyTo
-          ? {
-              id: replyTo.id,
-              senderId: replyTo.senderId,
-              senderNickname: replyTo.senderNickname,
-              senderAvatar: replyTo.senderAvatar,
-              text: replyTo.text
-            }
-          : undefined
-      };
-      ws.send(JSON.stringify({ type: 'message', payload: message }));
-      setMessages((prev) => [...prev, message]);
-      setInput('');
+    return (): void => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (isSelfLoading) {
+    return (
+      <div className="app-loading">
+        <span>Загрузка...</span>
+      </div>
+    );
+  }
+
+  if (!self) {
+    return (
+      <div className="app-loading">
+        <span>Ошибка: профиль не найден</span>
+      </div>
+    );
+  }
+
+  const currentChat = chats.find((c) => c.id === currentChatId) ?? null;
+
+  const handleSendOrEdit = async (): Promise<void> => {
+    if (!input.trim()) return;
+
+    if (editTarget) {
+      await editMsg(editTarget.id, input);
+      setEditTarget(null);
+    } else {
+      await sendMsg(input, replyTo?.id ?? null);
       setReplyTo(null);
     }
+    setInput('');
   };
 
-  const deleteMessage = (messageId: string): void => {
-    setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-    if (replyTo?.id === messageId) {
-      setReplyTo(null);
+  const handleStartEdit = (msg: { id: string; text: string }): void => {
+    setEditTarget(msg);
+    setReplyTo(null);
+    setInput(msg.text);
+  };
+
+  const handleCancelEdit = (): void => {
+    setEditTarget(null);
+    setInput('');
+  };
+
+  const handleSelectChat = (chatId: string): void => {
+    setEditTarget(null);
+    setReplyTo(null);
+    setInput('');
+    selectChat(chatId);
+  };
+
+  const handleAddContact = async (address: string): Promise<void> => {
+    const result = await window.api.db.users.addByAddress(address);
+    if (!result.success || !result.contact) {
+      throw new Error(result.error || 'Не удалось добавить контакт');
     }
 
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'delete-message', payload: { id: messageId } }));
+    await reloadContacts();
+    await reloadChats();
+
+    // Открываем чат только если контакт уже accepted (авто-accept при коллизии)
+    if (result.contact.contactStatus === 'accepted') {
+      await openDirectChat(result.contact.peerId);
     }
+  };
+
+  const handleAcceptRequest = async (peerId: string): Promise<void> => {
+    await window.api.db.users.acceptRequest(peerId);
+    await reloadContacts();
+    await reloadChats();
+    await openDirectChat(peerId);
+  };
+
+  const handleRejectRequest = async (peerId: string): Promise<void> => {
+    await window.api.db.users.rejectRequest(peerId);
+    await reloadContacts();
+  };
+
+  const handleCancelRequest = async (peerId: string): Promise<void> => {
+    await window.api.db.users.cancelRequest(peerId);
+    await reloadContacts();
   };
 
   return (
@@ -105,18 +140,22 @@ function App(): React.JSX.Element {
       <Group orientation="horizontal">
         <Panel
           defaultSize={300}
-          minSize={200}
-          maxSize={400}
-          className="sidebar"
+          minSize={220}
+          maxSize={450}
+          className="sidebar-panel"
           groupResizeBehavior="preserve-pixel-size"
         >
-          <div className="sidebar__contacts">{/* Будущий список контактов */}</div>
-
-          <UserBar
-            nickname={user.nickname}
-            avatar={user.avatar}
-            isServerRunning={isServerRunning}
-            isConnected={ws !== null}
+          <Sidebar
+            chats={chats}
+            currentChatId={currentChatId}
+            nickname={self.nickname}
+            avatar={self.avatar ?? undefined}
+            isServerRunning={true}
+            isConnected={true}
+            incomingCount={incomingCount}
+            onSelectChat={handleSelectChat}
+            onAddContact={(): void => setIsAddContactOpen(true)}
+            onOpenRequests={(): void => setIsRequestsOpen(true)}
             onOpenSettings={(): void => setIsSettingsOpen(true)}
           />
         </Panel>
@@ -124,38 +163,57 @@ function App(): React.JSX.Element {
         <Separator className="app-layout__resizer" />
 
         <Panel>
-          <Chat
-            messages={messages}
-            myId={user.id}
-            nickname={user.nickname}
-            input={input}
-            setInput={setInput}
-            sendMessage={sendMessage}
-            deleteMessage={deleteMessage}
-            isServerRunning={isServerRunning}
-            isConnected={ws !== null}
-            replyTo={replyTo}
-            setReplyTo={setReplyTo}
-            onOpenSettings={(): void => setIsSettingsOpen(true)}
-          />
+          {currentChat ? (
+            <Chat
+              chat={currentChat}
+              messages={messages}
+              myId={self.peerId}
+              input={input}
+              setInput={setInput}
+              sendMessage={handleSendOrEdit}
+              deleteMessage={deleteMessage}
+              onStartEdit={handleStartEdit}
+              isEditing={!!editTarget}
+              onCancelEdit={handleCancelEdit}
+              replyTo={replyTo}
+              setReplyTo={setReplyTo}
+            />
+          ) : (
+            <EmptyState />
+          )}
         </Panel>
       </Group>
 
-      <Settings
-        isOpen={isSettingsOpen}
-        nickname={user.nickname}
-        setNickname={(value: string): void => updateUser({ nickname: value })}
-        avatar={user.avatar}
-        setAvatar={(value: string): void => updateUser({ avatar: value })}
-        userId={user.id}
-        serverAddress={serverAddress}
-        setServerAddress={setServerAddress}
-        isServerRunning={isServerRunning}
-        startServer={startServer}
-        connectToServer={connectToServer}
-        isConnected={ws !== null}
-        onClose={(): void => setIsSettingsOpen(false)}
-      />
+      {isAddContactOpen && (
+        <AddContactModal
+          onClose={(): void => setIsAddContactOpen(false)}
+          onSubmit={handleAddContact}
+        />
+      )}
+
+      {isRequestsOpen && (
+        <FriendRequestsModal
+          incoming={incoming}
+          outgoing={outgoing}
+          onAccept={handleAcceptRequest}
+          onReject={handleRejectRequest}
+          onCancel={handleCancelRequest}
+          onClose={(): void => setIsRequestsOpen(false)}
+        />
+      )}
+
+      {isSettingsOpen && (
+        <Settings
+          isOpen={isSettingsOpen}
+          nickname={self.nickname}
+          setNickname={(value: string): Promise<void> => updateSelf({ nickname: value })}
+          avatar={self.avatar ?? undefined}
+          setAvatar={(value: string): Promise<void> => updateSelf({ avatar: value })}
+          userId={self.peerId}
+          address={myAddress}
+          onClose={(): void => setIsSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Message } from '@renderer/types/chat';
+import type { Message } from '@shared/types';
 
 const SCROLL_BOTTOM_THRESHOLD = 50;
 

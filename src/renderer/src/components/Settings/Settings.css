@@ -17,7 +17,11 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   overflow-x: hidden;
 }
-
+.settings__hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
 @media (max-width: 900px) {
   .settings {
     width: 100vw;

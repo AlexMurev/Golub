@@ -48,3 +48,11 @@ electronDownload:
 electronLanguages:
   - ru
   - en-US
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  perMachine: false

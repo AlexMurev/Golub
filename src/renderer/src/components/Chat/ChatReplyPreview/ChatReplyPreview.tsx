@@ -1,8 +1,9 @@
 import React from 'react';
+import type { ReplyPreview } from '@shared/types';
 import './ChatReplyPreview.css';
 
 interface ChatReplyPreviewProps {
-  replyTo: { id: string; senderId: string; senderNickname: string; text: string };
+  replyTo: ReplyPreview;
   onCancel: () => void;
 }
 
@@ -11,11 +12,11 @@ export const ChatReplyPreview: React.FC<ChatReplyPreviewProps> = ({ replyTo, onC
     <div className="chat-reply-preview">
       <div className="chat-reply-preview__content">
         <span className="chat-reply-preview__sender">{replyTo.senderNickname}</span>
-        <span className="chat-reply-preview__text" title={replyTo.text}>
-          {replyTo.text}
+        <span className="chat-reply-preview__text">
+          {replyTo.replyDeleted ? 'сообщение удалено' : replyTo.text}
         </span>
       </div>
-      <button className="chat-reply-preview__cancel" onClick={onCancel} title="Отменить ответ">
+      <button className="chat-reply-preview__cancel" onClick={onCancel}>
         ✕
       </button>
     </div>

@@ -2,23 +2,40 @@ import React from 'react';
 import './ChatTopBar.css';
 
 interface ChatTopBarProps {
-  isConnected: boolean;
-  isServerRunning: boolean;
+  title: string;
+  subtitle?: string;
+  avatar?: string | null;
+  isOnline?: boolean;
 }
 
 export const ChatTopBar: React.FC<ChatTopBarProps> = ({
-  isConnected,
-  isServerRunning
+  title,
+  subtitle,
+  avatar,
+  isOnline
 }): React.JSX.Element => {
-  const getTitle = (): string => {
-    if (!isConnected) return 'сеть-отключена';
-    return isServerRunning ? 'генеральный-хост' : 'комната-клиента';
-  };
+  const avatarPlaceholder: string = title.charAt(0).toUpperCase() || '?';
 
   return (
-    <div className="chat-top-bar">
-      <span className="chat-top-bar__hashtag">#</span>
-      <span className="chat-top-bar__title">{getTitle()}</span>
-    </div>
+    <header className="chat-topbar">
+      <div className="chat-topbar__avatar-wrapper">
+        {avatar ? (
+          <img src={avatar} alt={title} className="chat-topbar__avatar" />
+        ) : (
+          <div className="chat-topbar__avatar chat-topbar__avatar--placeholder">
+            {avatarPlaceholder}
+          </div>
+        )}
+        {isOnline !== undefined && (
+          <span
+            className={`chat-topbar__status-dot ${isOnline ? 'chat-topbar__status-dot--online' : ''}`}
+          />
+        )}
+      </div>
+      <div className="chat-topbar__info">
+        <span className="chat-topbar__title">{title}</span>
+        {subtitle && <span className="chat-topbar__subtitle">{subtitle}</span>}
+      </div>
+    </header>
   );
 };

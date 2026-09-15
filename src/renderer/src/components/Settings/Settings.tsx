@@ -1,21 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useModalAnimation } from '../../hooks/useModalAnimation';
 import './Settings.css';
-
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'ready';
+import type { UpdateStatus } from '@shared/types';
 
 interface SettingsProps {
   nickname: string;
-  setNickname: (value: string) => void;
+  setNickname: (value: string) => void | Promise<void>;
   avatar?: string;
-  setAvatar: (value: string) => void;
+  setAvatar: (value: string) => void | Promise<void>;
   userId: string;
-  serverAddress: string;
-  setServerAddress: (value: string) => void;
-  isServerRunning: boolean;
-  startServer: () => void;
-  connectToServer: () => void;
-  isConnected: boolean;
+  address: string | null;
   onClose: () => void;
   isOpen: boolean;
 }
@@ -26,18 +20,11 @@ export const Settings: React.FC<SettingsProps> = ({
   avatar,
   setAvatar,
   userId,
-  serverAddress,
-  setServerAddress,
-  isServerRunning,
-  startServer,
-  connectToServer,
-  isConnected,
+  address,
   onClose,
   isOpen
 }): React.JSX.Element | null => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Состояние для управления текстом и поведением кнопки
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
 
   const { shouldRender, animationClass, handleAnimationEnd } = useModalAnimation(isOpen, onClose);
@@ -59,7 +46,6 @@ export const Settings: React.FC<SettingsProps> = ({
     };
   }, [isOpen]);
 
-  // Слушаем статусы обновлений из main процесса, когда окно открыто
   useEffect(() => {
     if (!isOpen) return;
 
@@ -97,14 +83,13 @@ export const Settings: React.FC<SettingsProps> = ({
       const reader = new FileReader();
       reader.onloadend = (): void => {
         if (typeof reader.result === 'string') {
-          setAvatar(reader.result);
+          void setAvatar(reader.result);
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Обработка клика по кнопке в зависимости от текущей фазы
   const handleUpdateClick = (): void => {
     if (updateStatus === 'idle') {
       window.api.checkForUpdates();
@@ -113,7 +98,6 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   };
 
-  // Возврат строки для кнопки без any
   const getUpdateButtonText = (): string => {
     switch (updateStatus) {
       case 'checking':
@@ -179,9 +163,9 @@ export const Settings: React.FC<SettingsProps> = ({
                 className="settings__input"
                 type="text"
                 value={nickname}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                  setNickname(e.target.value)
-                }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                  void setNickname(e.target.value);
+                }}
                 placeholder="Аноним"
                 maxLength={32}
               />
@@ -190,39 +174,19 @@ export const Settings: React.FC<SettingsProps> = ({
               <span className="settings__label">Ваш ID</span>
               <div className="settings__id">{userId}</div>
             </div>
+
+            <div className="settings__field">
+              <span className="settings__label">Ваш адрес</span>
+              <div className="settings__id">{address ?? 'Недоступен'}</div>
+              <span className="settings__hint">
+                Передайте ID и адрес другу, чтобы он смог добавить вас в контакты
+              </span>
+            </div>
           </section>
 
           <section className="settings__section">
-            <h3 className="settings__section-title">Соединение</h3>
-            <label className="settings__field">
-              <span className="settings__label">Адрес сервера</span>
-              <input
-                className="settings__input"
-                type="text"
-                value={serverAddress}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                  setServerAddress(e.target.value)
-                }
-                placeholder="ws://localhost:8080"
-              />
-            </label>
-
+            <h3 className="settings__section-title">Обновления</h3>
             <div className="settings__actions">
-              <button
-                className="settings__button settings__button--primary"
-                onClick={startServer}
-                disabled={isServerRunning}
-              >
-                {isServerRunning ? 'Сервер запущен' : 'Стать хостом'}
-              </button>
-              <button
-                className={`settings__button ${isConnected ? 'settings__button--danger' : ''}`}
-                onClick={connectToServer}
-              >
-                {isConnected ? 'Отключиться' : 'Подключиться'}
-              </button>
-
-              {/* Чистая кнопка без лишней разметки */}
               <button
                 className={`settings__button ${updateStatus === 'ready' ? 'settings__button--success' : ''}`}
                 onClick={handleUpdateClick}

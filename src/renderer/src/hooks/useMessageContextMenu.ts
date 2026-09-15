@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Message } from '@renderer/types/chat';
+import type { Message } from '@shared/types';
 
 interface ContextMenuState {
   x: number;

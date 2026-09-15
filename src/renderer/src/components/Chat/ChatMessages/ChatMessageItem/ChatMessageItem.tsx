@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Message } from '@renderer/types/chat';
+import type { Message } from '@shared/types';
 import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
 import ReplyIcon from '@renderer/assets/reply.svg?react';
 import './ChatMessageItem.css';
@@ -21,7 +21,9 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
     onContextMenu,
     onReply,
     onJumpToMessage
-  }): React.JSX.Element => {
+  }): React.JSX.Element | null => {
+    if (msg.deletedAt) return null;
+
     const avatarPlaceholder: string = msg.senderNickname.charAt(0).toUpperCase() || 'A';
     const replyPlaceholder: string = msg.replyTo?.senderNickname.charAt(0).toUpperCase() || 'A';
 
@@ -68,7 +70,9 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
                 </div>
               )}
               <span className="message__reply-sender">{msg.replyTo.senderNickname}</span>
-              <span className="message__reply-text">{msg.replyTo.text}</span>
+              <span className="message__reply-text">
+                {msg.replyTo.replyDeleted ? 'сообщение удалено' : msg.replyTo.text}
+              </span>
             </div>
           )}
 
@@ -76,6 +80,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
             <div className="message__meta">
               <span className="message__sender">{msg.senderNickname}</span>
               <span className="message__timestamp">{formatFullDate(msg.createdAt)}</span>
+              {msg.editedAt && <span className="message__edited">(изменено)</span>}
             </div>
           )}
 

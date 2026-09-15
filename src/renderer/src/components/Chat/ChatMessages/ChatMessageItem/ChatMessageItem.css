@@ -201,3 +201,9 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.message__edited {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
