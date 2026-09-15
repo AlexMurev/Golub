@@ -53,7 +53,7 @@ export const UserBar: React.FC<UserBarProps> = ({
       </div>
 
       <button className="user-bar__settings" onClick={onOpenSettings} title="Настройки">
-        <SettingsIcon width="18" height="18" />
+        <SettingsIcon width={20} height={20} />
       </button>
     </div>
   );

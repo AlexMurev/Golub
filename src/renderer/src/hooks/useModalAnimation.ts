@@ -34,7 +34,7 @@ export const useModalAnimation = (
 
   return {
     shouldRender: isRendered,
-    animationClass: isClosing ? 'settings-overlay--closing' : 'settings-overlay--open',
+    animationClass: isClosing ? 'modal-overlay--closing' : 'modal-overlay--open',
     handleAnimationEnd
   };
 };

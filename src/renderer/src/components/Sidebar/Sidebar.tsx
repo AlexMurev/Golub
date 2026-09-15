@@ -41,11 +41,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span className="sidebar__title">Чаты</span>
         <div className="sidebar__actions">
           <button className="sidebar__icon-btn" onClick={onOpenRequests} title="Заявки в друзья">
-            <RequestsIcon />
+            <RequestsIcon height={20} width={20} />
             {incomingCount > 0 && <span className="sidebar__badge">{incomingCount}</span>}
           </button>
           <button className="sidebar__icon-btn" onClick={onAddContact} title="Добавить контакт">
-            <AddContactIcon />
+            <AddContactIcon height={20} width={20} />
           </button>
         </div>
       </div>

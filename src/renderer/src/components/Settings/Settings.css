@@ -1,22 +1,6 @@
-.settings-overlay {
-  position: fixed;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inset: 0;
-  background: var(--bg-overlay);
-}
-
 .settings {
-  display: flex;
-  flex-direction: column;
   width: clamp(900px, 85vw, 1500px);
   height: clamp(600px, 85vh, 1400px);
-  background: var(--bg-primary);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -30,44 +14,6 @@
     height: calc(100vh - env(titlebar-area-height, 30px));
     margin-top: env(titlebar-area-height, 30px);
   }
-}
-
-.settings__header {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.8rem;
-  border-bottom: 1px solid var(--bg-secondary);
-}
-
-.settings__title {
-  color: var(--text-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.settings__close {
-  padding: 0.2rem 0.4rem;
-  background: none;
-  border: none;
-  border-radius: var(--radius);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.settings__close:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.settings__close:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
 }
 
 .settings__body {
@@ -246,62 +192,4 @@
 
 .settings__avatar-preview-wrapper:hover .settings__avatar-overlay {
   opacity: 1;
-}
-
-/* ---------- Анимации ---------- */
-
-@keyframes settings-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes settings-scale-up {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes settings-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes settings-scale-down {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-}
-
-.settings-overlay--open {
-  animation: settings-fade-in 0.2s ease-out forwards;
-}
-
-.settings-overlay--open .settings {
-  animation: settings-scale-up 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.settings-overlay--closing {
-  animation: settings-fade-out 0.2s ease-in forwards;
-}
-
-.settings-overlay--closing .settings {
-  animation: settings-scale-down 0.2s ease-in forwards;
 }

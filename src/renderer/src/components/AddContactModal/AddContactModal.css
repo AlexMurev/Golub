@@ -1,57 +1,6 @@
-.add-contact-overlay {
-  position: fixed;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inset: 0;
-  background: var(--bg-overlay);
-}
-
 .add-contact {
   width: 460px;
   max-width: 90vw;
-  background: var(--bg-primary);
-  border-radius: var(--radius);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-}
-
-.add-contact__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--bg-deep);
-}
-
-.add-contact__title {
-  color: var(--text-primary);
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-
-.add-contact__close {
-  padding: 4px 8px;
-  background: none;
-  border: none;
-  border-radius: var(--radius);
-  color: var(--text-muted);
-  font-size: 0.69rem;
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.add-contact__close:hover {
-  background: var(--bg-tertiary);
-  color: var(--accent-danger);
-}
-
-.add-contact__close:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
 }
 
 .add-contact__form {

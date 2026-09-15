@@ -18,7 +18,7 @@
 
 .sidebar__title {
   color: var(--text-secondary);
-  font-size: 0.54rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -26,7 +26,7 @@
 
 .sidebar__actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
 }
 
 .sidebar__icon-btn {
@@ -69,7 +69,7 @@
   background: var(--accent-danger);
   border-radius: var(--radius);
   color: var(--text-primary);
-  font-size: 0.38rem;
+  font-size: 0.5rem;
   font-weight: 700;
   line-height: 1;
 }

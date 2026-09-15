@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useModalAnimation } from '../../hooks/useModalAnimation';
+import { Modal } from '@renderer/components/Modal/Modal';
+import { ModalHeader } from '@renderer/components/Modal/ModalHeader';
 import type { UpdateStatus } from '@shared/types';
 import './Settings.css';
 
@@ -27,25 +28,6 @@ export const Settings: React.FC<SettingsProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
 
-  const { shouldRender, animationClass, handleAnimationEnd } = useModalAnimation(isOpen, onClose);
-
-  useEffect(() => {
-    let timerId: NodeJS.Timeout;
-
-    if (isOpen) {
-      timerId = setTimeout((): void => {
-        window.api.setTitlebarColor('#10101026');
-      }, 30);
-    } else {
-      timerId = setTimeout((): void => {
-        window.api.setTitlebarColor('#2b2d31');
-      }, 160);
-    }
-    return (): void => {
-      clearTimeout(timerId);
-    };
-  }, [isOpen]);
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -65,8 +47,6 @@ export const Settings: React.FC<SettingsProps> = ({
     }
     return undefined;
   }, [isOpen]);
-
-  if (!shouldRender) return null;
 
   const handleAvatarClick = (): void => {
     fileInputRef.current?.click();
@@ -114,90 +94,79 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div
-      className={`settings-overlay ${animationClass}`}
-      onClick={onClose}
-      onAnimationEnd={handleAnimationEnd}
-    >
-      <div className="settings" onClick={(e: React.MouseEvent): void => e.stopPropagation()}>
-        <header className="settings__header">
-          <h2 className="settings__title">Настройки</h2>
-          <button className="settings__close" onClick={onClose} title="Закрыть">
-            ✕
-          </button>
-        </header>
+    <Modal isOpen={isOpen} onClose={onClose} className="settings">
+      <ModalHeader title="Настройки" onClose={onClose} />
 
-        <div className="settings__body">
-          <section className="settings__section">
-            <h3 className="settings__section-title">Профиль</h3>
+      <div className="settings__body">
+        <section className="settings__section">
+          <h3 className="settings__section-title">Профиль</h3>
 
-            <div className="settings__avatar-selector">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-              <div
-                className="settings__avatar-preview-wrapper"
-                onClick={handleAvatarClick}
-                title="Изменить аватар"
-              >
-                {avatar ? (
-                  <img src={avatar} alt="Preview" className="settings__avatar-preview" />
-                ) : (
-                  <div className="settings__avatar-placeholder">
-                    {nickname.charAt(0).toUpperCase() || 'A'}
-                  </div>
-                )}
-                <div className="settings__avatar-overlay">
-                  <span className="settings__avatar-overlay-text">СМЕНИТЬ</span>
+          <div className="settings__avatar-selector">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <div
+              className="settings__avatar-preview-wrapper"
+              onClick={handleAvatarClick}
+              title="Изменить аватар"
+            >
+              {avatar ? (
+                <img src={avatar} alt="Preview" className="settings__avatar-preview" />
+              ) : (
+                <div className="settings__avatar-placeholder">
+                  {nickname.charAt(0).toUpperCase() || 'A'}
                 </div>
+              )}
+              <div className="settings__avatar-overlay">
+                <span className="settings__avatar-overlay-text">СМЕНИТЬ</span>
               </div>
             </div>
+          </div>
 
-            <label className="settings__field">
-              <span className="settings__label">Ник</span>
-              <input
-                className="settings__input"
-                type="text"
-                value={nickname}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                  void setNickname(e.target.value);
-                }}
-                placeholder="Аноним"
-                maxLength={32}
-              />
-            </label>
-            <div className="settings__field">
-              <span className="settings__label">Ваш ID</span>
-              <div className="settings__id">{userId}</div>
-            </div>
+          <label className="settings__field">
+            <span className="settings__label">Ник</span>
+            <input
+              className="settings__input"
+              type="text"
+              value={nickname}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                void setNickname(e.target.value);
+              }}
+              placeholder="Аноним"
+              maxLength={32}
+            />
+          </label>
+          <div className="settings__field">
+            <span className="settings__label">Ваш ID</span>
+            <div className="settings__id">{userId}</div>
+          </div>
 
-            <div className="settings__field">
-              <span className="settings__label">Ваш адрес</span>
-              <div className="settings__id">{address ?? 'Недоступен'}</div>
-              <span className="settings__hint">
-                Передайте ID и адрес другу, чтобы он смог добавить вас в контакты
-              </span>
-            </div>
-          </section>
+          <div className="settings__field">
+            <span className="settings__label">Ваш адрес</span>
+            <div className="settings__id">{address ?? 'Недоступен'}</div>
+            <span className="settings__hint">
+              Передайте ID и адрес другу, чтобы он смог добавить вас в контакты
+            </span>
+          </div>
+        </section>
 
-          <section className="settings__section">
-            <h3 className="settings__section-title">Обновления</h3>
-            <div className="settings__actions">
-              <button
-                className={`settings__button ${updateStatus === 'ready' ? 'settings__button--success' : ''}`}
-                onClick={handleUpdateClick}
-                disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
-              >
-                {getUpdateButtonText()}
-              </button>
-            </div>
-          </section>
-        </div>
+        <section className="settings__section">
+          <h3 className="settings__section-title">Обновления</h3>
+          <div className="settings__actions">
+            <button
+              className={`settings__button ${updateStatus === 'ready' ? 'settings__button--success' : ''}`}
+              onClick={handleUpdateClick}
+              disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
+            >
+              {getUpdateButtonText()}
+            </button>
+          </div>
+        </section>
       </div>
-    </div>
+    </Modal>
   );
 };

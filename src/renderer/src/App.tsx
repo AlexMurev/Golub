@@ -197,36 +197,32 @@ function App(): React.JSX.Element {
         </Panel>
       </Group>
 
-      {isAddContactOpen && (
-        <AddContactModal
-          onClose={(): void => setIsAddContactOpen(false)}
-          onSubmit={handleAddContact}
-        />
-      )}
+      <AddContactModal
+        onClose={(): void => setIsAddContactOpen(false)}
+        onSubmit={handleAddContact}
+        isOpen={isAddContactOpen}
+      />
 
-      {isRequestsOpen && (
-        <FriendRequestsModal
-          incoming={incoming}
-          outgoing={outgoing}
-          onAccept={handleAcceptRequest}
-          onReject={handleRejectRequest}
-          onCancel={handleCancelRequest}
-          onClose={(): void => setIsRequestsOpen(false)}
-        />
-      )}
+      <FriendRequestsModal
+        incoming={incoming}
+        outgoing={outgoing}
+        onAccept={handleAcceptRequest}
+        onReject={handleRejectRequest}
+        onCancel={handleCancelRequest}
+        onClose={(): void => setIsRequestsOpen(false)}
+        isOpen={isRequestsOpen}
+      />
 
-      {isSettingsOpen && (
-        <Settings
-          isOpen={isSettingsOpen}
-          nickname={self.nickname}
-          setNickname={(value: string): Promise<void> => updateSelf({ nickname: value })}
-          avatar={self.avatar ?? undefined}
-          setAvatar={(value: string): Promise<void> => updateSelf({ avatar: value })}
-          userId={self.peerId}
-          address={myAddress}
-          onClose={(): void => setIsSettingsOpen(false)}
-        />
-      )}
+      <Settings
+        isOpen={isSettingsOpen}
+        nickname={self.nickname}
+        setNickname={(value: string): Promise<void> => updateSelf({ nickname: value })}
+        avatar={self.avatar ?? undefined}
+        setAvatar={(value: string): Promise<void> => updateSelf({ avatar: value })}
+        userId={self.peerId}
+        address={myAddress}
+        onClose={(): void => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

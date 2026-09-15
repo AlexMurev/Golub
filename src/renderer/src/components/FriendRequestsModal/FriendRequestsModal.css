@@ -1,60 +1,7 @@
-.friend-requests-overlay {
-  position: fixed;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inset: 0;
-  background: var(--bg-overlay);
-}
-
 .friend-requests {
-  display: flex;
-  flex-direction: column;
   width: 560px;
   max-width: 90vw;
   max-height: 80vh;
-  background: var(--bg-primary);
-  border-radius: var(--radius);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-}
-
-.friend-requests__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--bg-deep);
-}
-
-.friend-requests__title {
-  color: var(--text-primary);
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-
-.friend-requests__close {
-  padding: 4px 8px;
-  background: none;
-  border: none;
-  border-radius: var(--radius);
-  color: var(--text-muted);
-  font-size: 0.69rem;
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.friend-requests__close:hover {
-  background: var(--bg-tertiary);
-  color: var(--accent-danger);
-}
-
-.friend-requests__close:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
 }
 
 .friend-requests__body {

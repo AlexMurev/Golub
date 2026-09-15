@@ -3,7 +3,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: transparent;
   border: none;
   border-radius: var(--radius);
@@ -46,7 +46,7 @@
   justify-content: center;
   background: var(--accent-primary);
   color: var(--text-primary);
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -68,7 +68,7 @@
 .sidebar-item__title {
   overflow: hidden;
   color: var(--text-primary);
-  font-size: 0.54rem;
+  font-size: 0.7rem;
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -77,13 +77,13 @@
 .sidebar-item__time {
   flex-shrink: 0;
   color: var(--text-muted);
-  font-size: 0.42rem;
+  font-size: 0.65rem;
 }
 
 .sidebar-item__preview {
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: 0.46rem;
+  font-size: 0.65rem;
   white-space: nowrap;
   text-overflow: ellipsis;
 }

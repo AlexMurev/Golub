@@ -63,7 +63,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         disabled={!isConnected || !input.trim()}
         title="Отправить"
       >
-        <SendIcon />
+        <SendIcon height={30} width={30} />
       </button>
     </div>
   );
