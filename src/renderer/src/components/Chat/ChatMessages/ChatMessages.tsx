@@ -4,12 +4,11 @@ import { ContextMenu, ContextMenuItem } from '@renderer/components/ContextMenu/C
 import type { Message } from '@shared/types';
 import { useMessageContextMenu } from '@renderer/hooks/useMessageContextMenu';
 import { ChatMessageItem } from './ChatMessageItem/ChatMessageItem';
-import './ChatMessages.css';
-
 import ReplyIcon from '@renderer/assets/reply.svg?react';
 import CopyIcon from '@renderer/assets/copy.svg?react';
 import EditIcon from '@renderer/assets/edit.svg?react';
 import DeleteIcon from '@renderer/assets/delete.svg?react';
+import './ChatMessages.css';
 
 interface ChatMessagesProps {
   chatId: string | null;

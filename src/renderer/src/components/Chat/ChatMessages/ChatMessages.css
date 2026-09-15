@@ -25,7 +25,7 @@
 
 .chat-messages__list::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .chat-messages__list::-webkit-scrollbar-thumb:hover {
@@ -38,16 +38,7 @@
 
 .chat-messages__loader {
   padding: 8px;
+  color: var(--text-muted);
+  font-size: 0.46rem;
   text-align: center;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.chat-messages__placeholder {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 13px;
 }

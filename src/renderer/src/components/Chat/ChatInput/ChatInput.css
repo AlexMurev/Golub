@@ -1,7 +1,7 @@
 .chat-input-area {
   display: flex;
-  align-items: flex-end;
   flex-shrink: 0;
+  align-items: flex-end;
   padding: 6px;
   background: var(--bg-tertiary);
   border-radius: var(--radius);
@@ -18,16 +18,16 @@
 
 .chat-input-area__message {
   flex: 1;
-  padding: 10px 14px;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 0.75rem;
-  font-family: inherit;
-  outline: none;
-  resize: none;
-  overflow-y: hidden;
   max-height: 180px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  resize: none;
+  outline: none;
+  overflow-y: hidden;
 }
 
 .chat-input-area__message::placeholder {
@@ -36,17 +36,19 @@
 
 .chat-input-area__send-button {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border: none;
   background: var(--accent-primary);
-  color: #ffffff;
+  border: none;
   border-radius: var(--radius);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background var(--transition-fast), transform 0.1s;
+  transition:
+    background var(--transition-fast),
+    transform 0.1s;
 }
 
 .chat-input-area__send-button:hover:not(:disabled) {

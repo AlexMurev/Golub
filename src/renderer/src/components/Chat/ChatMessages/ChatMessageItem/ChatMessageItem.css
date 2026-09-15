@@ -17,12 +17,12 @@
 }
 
 .message-row--highlighted {
-  animation: discordFlash 1s ease-out;
+  animation: message-row-highlight 1s ease-out;
 }
 
-@keyframes discordFlash {
+@keyframes message-row-highlight {
   0% {
-    background: rgba(88, 101, 200, 0.3);
+    background: color-mix(in srgb, var(--accent-primary) 30%, transparent);
   }
   100% {
     background: transparent;
@@ -31,9 +31,9 @@
 
 .message-row__left-column {
   display: flex;
+  flex-shrink: 0;
   align-items: flex-start;
   justify-content: center;
-  flex-shrink: 0;
   width: 40px;
   height: 40px;
 }
@@ -46,8 +46,8 @@
 .message-row__hover-time {
   display: none;
   color: var(--text-muted);
-  font-weight: 500;
   font-size: 0.55rem;
+  font-weight: 500;
   white-space: nowrap;
   user-select: none;
 }
@@ -79,9 +79,9 @@
   align-items: center;
   justify-content: center;
   background: var(--accent-primary);
-  color: #ffffff;
-  font-weight: 700;
+  color: var(--text-primary);
   font-size: 0.8rem;
+  font-weight: 700;
   user-select: none;
 }
 
@@ -94,8 +94,8 @@
 
 .message__sender {
   color: var(--text-primary);
-  font-weight: 600;
   font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .message__timestamp {
@@ -118,13 +118,16 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--bg-tertiary);
   background: var(--bg-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius);
   color: var(--text-secondary);
-  border-radius: 4px;
   opacity: 0;
   cursor: pointer;
-  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .message-row--grouped .message__reply-btn {
@@ -182,16 +185,16 @@
   align-items: center;
   justify-content: center;
   background: var(--accent-primary);
-  color: #ffffff;
-  font-weight: 700;
+  color: var(--text-primary);
   font-size: 0.45rem;
+  font-weight: 700;
   user-select: none;
 }
 
 .message__reply-sender {
   color: var(--text-secondary);
-  font-weight: 700;
   font-size: 0.65rem;
+  font-weight: 700;
 }
 
 .message__reply-text {
@@ -203,17 +206,17 @@
 }
 
 .message__edited {
-  font-size: 11px;
-  color: var(--text-muted);
   margin-left: 4px;
+  color: var(--text-muted);
+  font-size: 0.42rem;
 }
 
 .message__video {
-  margin-top: 8px;
   max-width: 480px;
-  border-radius: var(--radius-md);
+  margin-top: 8px;
+  background: var(--bg-deep);
+  border-radius: var(--radius);
   overflow: hidden;
-  background: #000;
   aspect-ratio: 16 / 9;
 }
 

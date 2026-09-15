@@ -3,7 +3,6 @@
   color: var(--text-link);
   text-decoration: none;
   border-bottom: 1px solid transparent;
-  cursor: pointer;
   transition: border-color var(--transition-fast);
 }
 
@@ -17,28 +16,28 @@
 
 /* ---------- Инлайн-код ---------- */
 .message__text code {
-  font-family: Consolas, Monaco, 'Courier New', monospace;
-  font-size: 13px;
   padding: 2px 6px;
   background: var(--bg-deep);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   color: var(--text-primary);
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.5rem;
 }
 
 /* ---------- Блок кода ---------- */
 .message__text pre {
+  max-width: 100%;
   margin: 6px 0;
   padding: 12px 14px;
   background: var(--bg-deep);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   overflow-x: auto;
-  max-width: 100%;
 }
 
 .message__text pre code {
   padding: 0;
   background: transparent;
-  font-size: 13px;
+  font-size: 0.5rem;
   line-height: 1.5;
 }
 
@@ -46,10 +45,10 @@
 .message__text blockquote {
   margin: 6px 0;
   padding: 4px 12px;
-  border-left: 4px solid var(--accent-primary);
-  color: var(--text-secondary);
   background: var(--bg-deep);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-left: 4px solid var(--accent-primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-secondary);
 }
 
 /* ---------- Списки ---------- */
@@ -72,7 +71,7 @@
   color: var(--text-muted);
 }
 
-/* ---------- Заголовки (на всякий случай, чтобы не были огромными) ---------- */
+/* ---------- Заголовки ---------- */
 .message__text h1,
 .message__text h2,
 .message__text h3,
@@ -81,12 +80,23 @@
   line-height: 1.3;
 }
 
-.message__text h1 { font-size: 20px; }
-.message__text h2 { font-size: 18px; }
-.message__text h3 { font-size: 16px; }
-.message__text h4 { font-size: 15px; }
+.message__text h1 {
+  font-size: 0.77rem;
+}
 
-/* ---------- Параграфы (убираем лишние отступы от markdown) ---------- */
+.message__text h2 {
+  font-size: 0.69rem;
+}
+
+.message__text h3 {
+  font-size: 0.62rem;
+}
+
+.message__text h4 {
+  font-size: 0.58rem;
+}
+
+/* ---------- Параграфы ---------- */
 .message__text p {
   margin: 0;
 }
@@ -97,16 +107,16 @@
 
 /* ---------- Разделитель ---------- */
 .message__text hr {
+  margin: 8px 0;
   border: none;
   border-top: 1px solid var(--bg-deep);
-  margin: 8px 0;
 }
 
 /* ---------- Таблицы (GFM) ---------- */
 .message__text table {
-  border-collapse: collapse;
   margin: 6px 0;
-  font-size: 13px;
+  border-collapse: collapse;
+  font-size: 0.5rem;
 }
 
 .message__text th,

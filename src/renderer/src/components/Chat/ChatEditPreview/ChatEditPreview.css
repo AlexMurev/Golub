@@ -8,19 +8,19 @@
 }
 
 .chat-edit-preview__label {
-  font-size: 13px;
-  font-weight: 600;
   color: var(--accent-warning);
+  font-size: 0.5rem;
+  font-weight: 600;
 }
 
 .chat-edit-preview__cancel {
+  padding: 0 4px;
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: 0.69rem;
   cursor: pointer;
-  padding: 0 4px;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .chat-edit-preview__cancel:hover {

@@ -22,7 +22,8 @@
     "build:mac": "electron-vite build && electron-builder --mac --publish never",
     "build:linux": "electron-vite build && electron-builder --linux --publish never",
     "deploy": "dotenv -e .env -- npm run build && dotenv -e .env -- electron-builder --win --publish always",
-    "check-licenses": "license-checker-evergreen --production --summary"
+    "check-licenses": "license-checker-evergreen --production --summary",
+    "save-licenses": "license-checker-evergreen --production --out licenses.txt"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -60,6 +61,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "license-checker-evergreen": "^6.3.1",
     "prettier": "^3.7.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",

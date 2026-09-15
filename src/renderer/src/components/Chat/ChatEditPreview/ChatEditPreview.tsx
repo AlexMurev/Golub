@@ -8,9 +8,7 @@ interface ChatEditPreviewProps {
 export const ChatEditPreview: React.FC<ChatEditPreviewProps> = ({ onCancel }) => {
   return (
     <div className="chat-edit-preview">
-      <div className="chat-edit-preview__content">
-        <span className="chat-edit-preview__label">Редактирование сообщения</span>
-      </div>
+      <span className="chat-edit-preview__label">Редактирование сообщения</span>
       <button className="chat-edit-preview__cancel" onClick={onCancel} title="Отменить">
         ✕
       </button>
