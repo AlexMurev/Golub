@@ -5,25 +5,22 @@
   overflow: hidden;
 }
 
-.sidebar {
+.app-loading {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100%;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.75rem;
 }
 
-.sidebar__contacts {
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* Separator */
 .app-layout__resizer {
   width: 4px;
   background: transparent;
   cursor: col-resize;
-  transition: background var(--transition-fast);
   outline: none;
+  transition: background var(--transition-fast);
 }
 
 .app-layout__resizer:hover {

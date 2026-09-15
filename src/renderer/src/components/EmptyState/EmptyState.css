@@ -1,6 +1,6 @@
 .empty-state {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -10,18 +10,18 @@
 }
 
 .empty-state__icon {
-  font-size: 64px;
-  opacity: 0.3;
   margin-bottom: 8px;
+  font-size: 2.46rem;
+  opacity: 0.3;
 }
 
 .empty-state__title {
-  font-size: 20px;
-  font-weight: 700;
   color: var(--text-primary);
+  font-size: 0.77rem;
+  font-weight: 700;
 }
 
 .empty-state__subtitle {
-  font-size: 14px;
   color: var(--text-muted);
+  font-size: 0.54rem;
 }

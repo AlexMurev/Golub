@@ -16,19 +16,26 @@
   gap: 8px;
   width: 100%;
   padding: 6px 8px;
-  border: none;
   background: transparent;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.65rem;
+  border: none;
   border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .context-menu__item:hover {
   background: var(--accent-primary);
-  color: #ffffff;
+  color: var(--text-primary);
+}
+
+.context-menu__item:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 .context-menu__item-icon {
@@ -48,5 +55,5 @@
 
 .context-menu__item--danger:hover {
   background: var(--accent-danger);
-  color: #ffffff;
+  color: var(--text-primary);
 }

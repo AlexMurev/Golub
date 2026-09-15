@@ -7,29 +7,11 @@
   overflow: hidden;
 }
 
-/* className у Virtuoso применяется к самому скроллеру */
 .chat-messages__list {
   flex: 1;
   min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--bg-tertiary) transparent;
-}
-
-.chat-messages__list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.chat-messages__list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chat-messages__list::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: var(--radius);
-}
-
-.chat-messages__list::-webkit-scrollbar-thumb:hover {
-  background: var(--bg-elevated);
 }
 
 .chat-messages__row {

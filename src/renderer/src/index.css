@@ -89,3 +89,28 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
+
+/* ==========================================================================
+   СКРОЛЛБАРЫ
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-elevated);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

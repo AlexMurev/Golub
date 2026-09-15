@@ -1,6 +1,6 @@
 import React from 'react';
-import './UserBar.css';
 import SettingsIcon from '@renderer/assets/settings.svg?react';
+import './UserBar.css';
 
 interface UserBarProps {
   nickname: string;
@@ -37,7 +37,7 @@ export const UserBar: React.FC<UserBarProps> = ({
           {avatar ? (
             <img src={avatar} alt={nickname} className="user-bar__avatar" />
           ) : (
-            <div className="user-bar__avatar-placeholder">
+            <div className="user-bar__avatar user-bar__avatar--placeholder">
               {nickname.charAt(0).toUpperCase() || 'A'}
             </div>
           )}

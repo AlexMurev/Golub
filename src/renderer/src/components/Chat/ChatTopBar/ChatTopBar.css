@@ -1,11 +1,11 @@
 .chat-topbar {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--bg-deep);
+  border-bottom: 1px solid var(--bg-tertiary);
 }
 
 .chat-topbar__avatar-wrapper {
@@ -14,11 +14,11 @@
 }
 
 .chat-topbar__avatar {
+  display: block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  display: block;
 }
 
 .chat-topbar__avatar--placeholder {
@@ -27,19 +27,19 @@
   justify-content: center;
   background: var(--accent-primary);
   color: var(--text-primary);
+  font-size: 0.62rem;
   font-weight: 700;
-  font-size: 16px;
 }
 
 .chat-topbar__status-dot {
   position: absolute;
-  bottom: 0;
   right: 0;
+  bottom: 0;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
   background: var(--text-muted);
   border: 2px solid var(--bg-secondary);
+  border-radius: 50%;
 }
 
 .chat-topbar__status-dot--online {
@@ -54,15 +54,15 @@
 }
 
 .chat-topbar__title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .chat-topbar__subtitle {
-  font-size: 12px;
   color: var(--text-muted);
+  font-size: 0.6rem;
 }

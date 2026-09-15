@@ -1,6 +1,6 @@
 .user-bar {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   margin: 8px;
@@ -12,8 +12,8 @@
 
 .user-bar__profile-wrapper {
   display: flex;
-  align-items: center;
   flex: 1;
+  align-items: center;
   gap: 8px;
   min-width: 0;
 }
@@ -32,17 +32,17 @@
   object-fit: cover;
 }
 
-.user-bar__avatar-placeholder {
+.user-bar__avatar--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
   background: var(--accent-primary);
-  color: #ffffff;
+  border-radius: 50%;
+  color: var(--text-primary);
   font-size: 0.65rem;
   font-weight: 700;
-  border-radius: 50%;
   user-select: none;
 }
 
@@ -70,16 +70,16 @@
 
 .user-bar__profile {
   display: flex;
-  flex-direction: column;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
 }
 
 .user-bar__nickname {
   overflow: hidden;
   color: var(--text-primary);
-  font-weight: 600;
   font-size: 0.7rem;
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -87,8 +87,8 @@
 
 .user-bar__status-text {
   color: var(--text-secondary);
-  font-weight: 500;
   font-size: 0.55rem;
+  font-weight: 500;
   line-height: 1.2;
 }
 
@@ -98,12 +98,14 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: none;
   background: transparent;
-  color: var(--text-secondary);
+  border: none;
   border-radius: var(--radius);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .user-bar__settings:hover {
@@ -113,4 +115,9 @@
 
 .user-bar__settings:active {
   background: var(--bg-elevated);
+}
+
+.user-bar__settings:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }

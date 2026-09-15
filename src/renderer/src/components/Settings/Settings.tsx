@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useModalAnimation } from '../../hooks/useModalAnimation';
-import './Settings.css';
 import type { UpdateStatus } from '@shared/types';
+import './Settings.css';
 
 interface SettingsProps {
   nickname: string;

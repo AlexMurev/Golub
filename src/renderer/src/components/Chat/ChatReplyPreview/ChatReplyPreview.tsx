@@ -16,7 +16,7 @@ export const ChatReplyPreview: React.FC<ChatReplyPreviewProps> = ({ replyTo, onC
           {replyTo.replyDeleted ? 'сообщение удалено' : replyTo.text}
         </span>
       </div>
-      <button className="chat-reply-preview__cancel" onClick={onCancel}>
+      <button className="chat-reply-preview__cancel" onClick={onCancel} title="Отменить ответ">
         ✕
       </button>
     </div>

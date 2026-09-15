@@ -1,21 +1,21 @@
 .friend-requests-overlay {
   position: fixed;
-  inset: 0;
-  background: var(--bg-overlay);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  inset: 0;
+  background: var(--bg-overlay);
 }
 
 .friend-requests {
+  display: flex;
+  flex-direction: column;
   width: 560px;
   max-width: 90vw;
   max-height: 80vh;
-  display: flex;
-  flex-direction: column;
   background: var(--bg-primary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
@@ -29,20 +29,22 @@
 }
 
 .friend-requests__title {
-  font-size: 17px;
-  font-weight: 700;
   color: var(--text-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
 }
 
 .friend-requests__close {
+  padding: 4px 8px;
   background: none;
   border: none;
+  border-radius: var(--radius);
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: 0.69rem;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .friend-requests__close:hover {
@@ -50,33 +52,38 @@
   color: var(--accent-danger);
 }
 
+.friend-requests__close:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .friend-requests__body {
-  padding: 16px 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding: 16px 20px;
+  overflow-y: auto;
 }
 
 .friend-requests__section-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-bottom: 10px;
+  color: var(--text-secondary);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .friend-requests__empty {
-  font-size: 13px;
   color: var(--text-muted);
+  font-size: 0.5rem;
 }
 
 .friend-requests__list {
-  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  list-style: none;
 }
 
 .friend-requests__item {
@@ -85,7 +92,7 @@
   gap: 12px;
   padding: 10px 12px;
   background: var(--bg-tertiary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
 }
 
 .friend-requests__avatar-wrapper {
@@ -93,11 +100,11 @@
 }
 
 .friend-requests__avatar {
+  display: block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  display: block;
 }
 
 .friend-requests__avatar--placeholder {
@@ -106,52 +113,59 @@
   justify-content: center;
   background: var(--accent-primary);
   color: var(--text-primary);
+  font-size: 0.62rem;
   font-weight: 700;
-  font-size: 16px;
 }
 
 .friend-requests__info {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .friend-requests__nickname {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.54rem;
+  font-weight: 600;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .friend-requests__address {
-  font-size: 11px;
   color: var(--text-muted);
   font-family: monospace;
+  font-size: 0.42rem;
 }
 
 .friend-requests__actions {
   display: flex;
-  gap: 6px;
   flex-shrink: 0;
+  gap: 6px;
 }
 
 .friend-requests__button {
   padding: 6px 12px;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--radius);
   font-family: inherit;
+  font-size: 0.46rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .friend-requests__button:active {
   transform: scale(0.97);
+}
+
+.friend-requests__button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 .friend-requests__button--accept {
