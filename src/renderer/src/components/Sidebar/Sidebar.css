@@ -73,3 +73,24 @@
   font-weight: 700;
   line-height: 1;
 }
+
+.sidebar__list {
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.sidebar__list--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.sidebar__empty-text {
+  color: var(--text-muted);
+  font-size: 0.5rem;
+  line-height: 1.6;
+  text-align: center;
+}
