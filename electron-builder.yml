@@ -14,10 +14,13 @@ asarUnpack:
 win:
   executableName: Golub
 nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  perMachine: false
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -37,7 +40,7 @@ linux:
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
-npmRebuild: false
+npmRebuild: true
 publish:
   - provider: github
     owner: AlexMurev
@@ -48,11 +51,3 @@ electronDownload:
 electronLanguages:
   - ru
   - en-US
-nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
-  perMachine: false

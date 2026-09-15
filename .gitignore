@@ -6,3 +6,4 @@ out
 *.log*
 data
 data-second
+.env
