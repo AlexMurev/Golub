@@ -1,30 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal } from '@renderer/components/Modal/Modal';
 import { ModalHeader } from '@renderer/components/Modal/ModalHeader';
+import { useSelf } from '@renderer/hooks/useSelf';
+import { useMyAddress } from '@renderer/hooks/useMyAddress';
 import type { UpdateStatus } from '@shared/types';
 import './Settings.css';
 
 interface SettingsProps {
-  nickname: string;
-  setNickname: (value: string) => void | Promise<void>;
-  avatar?: string;
-  setAvatar: (value: string) => void | Promise<void>;
-  userId: string;
-  address: string | null;
-  onClose: () => void;
   isOpen: boolean;
+  onClose: () => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
-  nickname,
-  setNickname,
-  avatar,
-  setAvatar,
-  userId,
-  address,
-  onClose,
-  isOpen
+  isOpen,
+  onClose
 }): React.JSX.Element | null => {
+  const { self, updateSelf } = useSelf();
+  const myAddress = useMyAddress();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
 
@@ -48,6 +40,8 @@ export const Settings: React.FC<SettingsProps> = ({
     return undefined;
   }, [isOpen]);
 
+  if (!self) return null;
+
   const handleAvatarClick = (): void => {
     fileInputRef.current?.click();
   };
@@ -63,11 +57,15 @@ export const Settings: React.FC<SettingsProps> = ({
       const reader = new FileReader();
       reader.onloadend = (): void => {
         if (typeof reader.result === 'string') {
-          void setAvatar(reader.result);
+          void updateSelf({ avatar: reader.result });
         }
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    void updateSelf({ nickname: e.target.value });
   };
 
   const handleUpdateClick = (): void => {
@@ -114,11 +112,11 @@ export const Settings: React.FC<SettingsProps> = ({
               onClick={handleAvatarClick}
               title="Изменить аватар"
             >
-              {avatar ? (
-                <img src={avatar} alt="Preview" className="settings__avatar-preview" />
+              {self.avatar ? (
+                <img src={self.avatar} alt="Preview" className="settings__avatar-preview" />
               ) : (
                 <div className="settings__avatar-placeholder">
-                  {nickname.charAt(0).toUpperCase() || 'A'}
+                  {self.nickname.charAt(0).toUpperCase() || 'A'}
                 </div>
               )}
               <div className="settings__avatar-overlay">
@@ -132,22 +130,20 @@ export const Settings: React.FC<SettingsProps> = ({
             <input
               className="settings__input"
               type="text"
-              value={nickname}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                void setNickname(e.target.value);
-              }}
+              value={self.nickname}
+              onChange={handleNicknameChange}
               placeholder="Аноним"
               maxLength={32}
             />
           </label>
           <div className="settings__field">
             <span className="settings__label">Ваш ID</span>
-            <div className="settings__id">{userId}</div>
+            <div className="settings__id">{self.peerId}</div>
           </div>
 
           <div className="settings__field">
             <span className="settings__label">Ваш адрес</span>
-            <div className="settings__id">{address ?? 'Недоступен'}</div>
+            <div className="settings__id">{myAddress ?? 'Недоступен'}</div>
             <span className="settings__hint">
               Передайте ID и адрес другу, чтобы он смог добавить вас в контакты
             </span>

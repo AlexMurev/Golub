@@ -1,29 +1,40 @@
 import React from 'react';
 import { Modal } from '@renderer/components/Modal/Modal';
 import { ModalHeader } from '@renderer/components/Modal/ModalHeader';
-import type { User } from '@shared/types';
+import { useContacts } from '@renderer/hooks/useContacts';
+import { useChats } from '@renderer/hooks/useChats';
 import { FriendRequestItem } from './FriendRequestItem';
 import './FriendRequestsModal.css';
 
 interface FriendRequestsModalProps {
   isOpen: boolean;
-  incoming: User[];
-  outgoing: User[];
-  onAccept: (peerId: string) => Promise<void>;
-  onReject: (peerId: string) => Promise<void>;
-  onCancel: (peerId: string) => Promise<void>;
   onClose: () => void;
 }
 
 export const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
   isOpen,
-  incoming,
-  outgoing,
-  onAccept,
-  onReject,
-  onCancel,
   onClose
 }): React.JSX.Element | null => {
+  const { incoming, outgoing, reload: reloadContacts } = useContacts();
+  const { reload: reloadChats, openDirectChat } = useChats();
+
+  const handleAccept = async (peerId: string): Promise<void> => {
+    await window.api.db.users.acceptRequest(peerId);
+    await reloadContacts();
+    await reloadChats();
+    await openDirectChat(peerId);
+  };
+
+  const handleReject = async (peerId: string): Promise<void> => {
+    await window.api.db.users.rejectRequest(peerId);
+    await reloadContacts();
+  };
+
+  const handleCancel = async (peerId: string): Promise<void> => {
+    await window.api.db.users.cancelRequest(peerId);
+    await reloadContacts();
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="friend-requests">
       <ModalHeader title="Заявки в друзья" onClose={onClose} />
@@ -43,7 +54,7 @@ export const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                   <button
                     className="friend-requests__button friend-requests__button--accept"
                     onClick={(): void => {
-                      void onAccept(u.peerId);
+                      void handleAccept(u.peerId);
                     }}
                   >
                     Принять
@@ -51,7 +62,7 @@ export const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                   <button
                     className="friend-requests__button friend-requests__button--reject"
                     onClick={(): void => {
-                      void onReject(u.peerId);
+                      void handleReject(u.peerId);
                     }}
                   >
                     Отклонить
@@ -76,7 +87,7 @@ export const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                   <button
                     className="friend-requests__button friend-requests__button--cancel"
                     onClick={(): void => {
-                      void onCancel(u.peerId);
+                      void handleCancel(u.peerId);
                     }}
                   >
                     Отменить

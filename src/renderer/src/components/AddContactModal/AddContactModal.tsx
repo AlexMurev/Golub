@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { Modal } from '@renderer/components/Modal/Modal';
 import { ModalHeader } from '@renderer/components/Modal/ModalHeader';
+import { useContacts } from '@renderer/hooks/useContacts';
+import { useChats } from '@renderer/hooks/useChats';
 import './AddContactModal.css';
 
 interface AddContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (address: string) => Promise<void>;
 }
 
 export const AddContactModal: React.FC<AddContactModalProps> = ({
   isOpen,
-  onClose,
-  onSubmit
+  onClose
 }): React.JSX.Element | null => {
+  const { reload: reloadContacts } = useContacts();
+  const { reload: reloadChats, openDirectChat } = useChats();
+
   const [address, setAddress] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -39,7 +42,18 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(address.trim());
+      const result = await window.api.db.users.addByAddress(address.trim());
+      if (!result.success || !result.contact) {
+        throw new Error(result.error || 'Не удалось добавить контакт');
+      }
+
+      await reloadContacts();
+      await reloadChats();
+
+      if (result.contact.contactStatus === 'accepted') {
+        await openDirectChat(result.contact.peerId);
+      }
+
       onClose();
     } catch (err) {
       setError(String(err));
@@ -64,7 +78,7 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({
             autoFocus
           />
           <span className="add-contact__hint">
-            ИП и порт из настроек собеседника (например: 26.64.82.174:8080)
+            IP и порт из настроек собеседника (например: 26.64.82.174:8080)
           </span>
         </label>
 

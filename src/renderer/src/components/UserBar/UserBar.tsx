@@ -1,32 +1,31 @@
 import React from 'react';
+import { useSelf } from '@renderer/hooks/useSelf';
 import SettingsIcon from '@renderer/assets/settings.svg?react';
 import './UserBar.css';
 
 interface UserBarProps {
-  nickname: string;
-  avatar?: string;
-  isServerRunning: boolean;
-  isConnected: boolean;
   onOpenSettings: () => void;
 }
 
-export const UserBar: React.FC<UserBarProps> = ({
-  nickname,
-  avatar,
-  isServerRunning,
-  isConnected,
-  onOpenSettings
-}): React.JSX.Element => {
+// TODO: заменить заглушки, когда появится реальный источник данных о сетевом статусе
+const IS_SERVER_RUNNING = true;
+const IS_CONNECTED = true;
+
+export const UserBar: React.FC<UserBarProps> = ({ onOpenSettings }): React.JSX.Element | null => {
+  const { self } = useSelf();
+
+  if (!self) return null;
+
   const getStatusModifier = (): string => {
-    if (!isConnected) return 'user-bar__status-badge--disconnected';
-    return isServerRunning
+    if (!IS_CONNECTED) return 'user-bar__status-badge--disconnected';
+    return IS_SERVER_RUNNING
       ? 'user-bar__status-badge--connected-host'
       : 'user-bar__status-badge--connected-client';
   };
 
   const getStatusText = (): string => {
-    if (!isConnected) return 'Отключено';
-    return isServerRunning ? 'Хост' : 'Клиент';
+    if (!IS_CONNECTED) return 'Отключено';
+    return IS_SERVER_RUNNING ? 'Хост' : 'Клиент';
   };
 
   return (
@@ -34,19 +33,19 @@ export const UserBar: React.FC<UserBarProps> = ({
       <div className="user-bar__profile-wrapper">
         {/* Блок аватарки с индикатором статуса сети поверх нее */}
         <div className="user-bar__avatar-container">
-          {avatar ? (
-            <img src={avatar} alt={nickname} className="user-bar__avatar" />
+          {self.avatar ? (
+            <img src={self.avatar} alt={self.nickname} className="user-bar__avatar" />
           ) : (
             <div className="user-bar__avatar user-bar__avatar--placeholder">
-              {nickname.charAt(0).toUpperCase() || 'A'}
+              {self.nickname.charAt(0).toUpperCase() || 'A'}
             </div>
           )}
           <div className={`user-bar__status-badge ${getStatusModifier()}`} />
         </div>
 
         <div className="user-bar__profile">
-          <span className="user-bar__nickname" title={nickname}>
-            {nickname}
+          <span className="user-bar__nickname" title={self.nickname}>
+            {self.nickname}
           </span>
           <span className="user-bar__status-text">{getStatusText()}</span>
         </div>

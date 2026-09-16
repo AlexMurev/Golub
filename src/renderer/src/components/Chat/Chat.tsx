@@ -1,52 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatMessages } from './ChatMessages/ChatMessages';
 import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
 import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
+import { useMessages } from '@renderer/hooks/useMessages';
+import { useSelf } from '@renderer/hooks/useSelf';
 import type { Message, ChatListItem, ReplyPreview } from '@shared/types';
 import './Chat.css';
 
 interface ChatProps {
   chat: ChatListItem;
-  messages: Message[];
-  myId: string;
-  firstItemIndex: number;
-  isLoading: boolean;
-  hasMore: boolean;
-  isLoadingOlder: boolean;
-  editingId: string | null;
-  onLoadOlder: () => void;
-  input: string;
-  setInput: (value: string) => void;
-  sendMessage: () => void;
-  deleteMessage: (messageId: string) => void;
-  onStartEdit: (id: string) => void;
-  onSubmitEdit: (id: string, text: string) => void;
-  onCancelEdit: () => void;
-  replyTo: ReplyPreview | null;
-  setReplyTo: (value: ReplyPreview | null) => void;
 }
 
-const Chat: React.FC<ChatProps> = ({
-  chat,
-  messages,
-  myId,
-  firstItemIndex,
-  isLoading,
-  hasMore,
-  isLoadingOlder,
-  editingId,
-  onLoadOlder,
-  input,
-  setInput,
-  sendMessage,
-  deleteMessage,
-  onStartEdit,
-  onSubmitEdit,
-  onCancelEdit,
-  replyTo,
-  setReplyTo
-}): React.JSX.Element => {
+const Chat: React.FC<ChatProps> = ({ chat }): React.JSX.Element => {
+  const { self } = useSelf();
+  const {
+    messages,
+    isLoading,
+    hasMore,
+    isLoadingOlder,
+    firstItemIndex,
+    loadOlder,
+    sendMessage,
+    editMessage,
+    deleteMessage
+  } = useMessages(chat.id, self?.peerId ?? null);
+
+  const [input, setInput] = useState<string>('');
+  const [replyTo, setReplyTo] = useState<ReplyPreview | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const handleSend = async (): Promise<void> => {
+    if (!input.trim()) return;
+    await sendMessage(input, replyTo?.id ?? null);
+    setReplyTo(null);
+    setInput('');
+  };
+
+  const handleStartEdit = (id: string): void => {
+    setEditingId(id);
+    setReplyTo(null);
+  };
+
+  const handleSubmitEdit = async (id: string, text: string): Promise<void> => {
+    await editMessage(id, text);
+    setEditingId(null);
+  };
+
+  const handleCancelEdit = (): void => {
+    setEditingId(null);
+  };
+
   const handleReply = (message: Message): void => {
     setReplyTo({
       id: message.id,
@@ -84,17 +88,17 @@ const Chat: React.FC<ChatProps> = ({
       <ChatMessages
         chatId={chat.id}
         messages={messages}
-        myId={myId}
+        myId={self?.peerId ?? ''}
         firstItemIndex={firstItemIndex}
         isLoading={isLoading}
         hasMore={hasMore}
         isLoadingOlder={isLoadingOlder}
         editingId={editingId}
-        onLoadOlder={onLoadOlder}
+        onLoadOlder={loadOlder}
         onReply={handleReply}
-        onStartEdit={onStartEdit}
-        onSubmitEdit={onSubmitEdit}
-        onCancelEdit={onCancelEdit}
+        onStartEdit={handleStartEdit}
+        onSubmitEdit={handleSubmitEdit}
+        onCancelEdit={handleCancelEdit}
         onDelete={deleteMessage}
       />
 
@@ -103,7 +107,7 @@ const Chat: React.FC<ChatProps> = ({
       <ChatInput
         input={input}
         setInput={setInput}
-        sendMessage={sendMessage}
+        sendMessage={handleSend}
         isConnected={true}
         hasReply={!!replyTo}
       />
