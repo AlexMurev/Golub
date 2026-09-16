@@ -83,7 +83,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="sidebar__item-content">
                   <div className="sidebar__item-top">
                     <span className="sidebar__item-title">{chat.title}</span>
-                    {timeText && <span className="sidebar__item-time">{timeText}</span>}
+                    {chat.unreadCount > 0 ? (
+                      <span className="sidebar__item-unread">{chat.unreadCount}</span>
+                    ) : (
+                      timeText && <span className="sidebar__item-time">{timeText}</span>
+                    )}
                   </div>
                   <div className="sidebar__item-preview">{previewText}</div>
                 </div>

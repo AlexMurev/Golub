@@ -1,0 +1,64 @@
+.settings-notifications__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+}
+
+.settings-notifications__name {
+  color: var(--text-primary);
+  font-size: 0.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.settings-notifications__actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.settings-notifications__volume {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-notifications__slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.settings-notifications__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.settings-notifications__slider::-webkit-slider-thumb:hover {
+  background: var(--accent-primary-hover);
+}
+
+.settings-notifications__volume-value {
+  min-width: 3ch;
+  text-align: right;
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  font-family: monospace;
+}

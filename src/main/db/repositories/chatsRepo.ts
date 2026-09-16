@@ -31,13 +31,20 @@ export function ensureDirectChat(selfId: string, otherId: string): string {
 }
 
 export function addMember(chatId: string, peerId: string, role: ChatRole): void {
+  const now = Date.now();
   getDb()
     .prepare(
-      `INSERT INTO chatMembers (chatId, peerId, role, joinedAt)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO chatMembers (chatId, peerId, role, joinedAt, lastReadAt)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(chatId, peerId) DO UPDATE SET role = excluded.role, leftAt = NULL`
     )
-    .run(chatId, peerId, role, Date.now());
+    .run(chatId, peerId, role, now, now);
+}
+
+export function markChatRead(chatId: string, peerId: string, at: number = Date.now()): void {
+  getDb()
+    .prepare('UPDATE chatMembers SET lastReadAt = ? WHERE chatId = ? AND peerId = ?')
+    .run(at, chatId, peerId);
 }
 
 export function listMembers(chatId: string): ChatMember[] {
@@ -69,6 +76,7 @@ interface ChatListRaw {
   lastDeletedAt: number | null;
   lastStatus: string | null;
   lastReplyToId: string | null;
+  unreadCount: number;
 }
 
 export function listChatItems(selfPeerId: string): ChatListItem[] {
@@ -94,6 +102,15 @@ export function listChatItems(selfPeerId: string): ChatListItem[] {
             WHERE chatId = c.id AND peerId != ? AND leftAt IS NULL LIMIT 1
           )
         ) AS otherAvatar,
+         (
+          SELECT COUNT(*) FROM messages um
+          WHERE um.chatId = c.id
+            AND um.senderId != ?
+            AND um.deletedAt IS NULL
+            AND um.createdAt > COALESCE(
+              (SELECT lastReadAt FROM chatMembers WHERE chatId = c.id AND peerId = ?), 0
+            )
+        ) AS unreadCount,
         m.id AS lastMessageId,
         m.senderId AS lastSenderId,
         mu.nickname AS lastSenderNickname,
@@ -115,7 +132,7 @@ export function listChatItems(selfPeerId: string): ChatListItem[] {
        WHERE c.deletedAt IS NULL
        ORDER BY COALESCE(m.createdAt, c.updatedAt) DESC, c.rowid DESC`
     )
-    .all(selfPeerId, selfPeerId, selfPeerId) as ChatListRaw[];
+    .all(selfPeerId, selfPeerId, selfPeerId, selfPeerId, selfPeerId) as ChatListRaw[];
 
   return rows.map((r) => {
     const lastMessage: Message | null = r.lastMessageId
@@ -143,7 +160,8 @@ export function listChatItems(selfPeerId: string): ChatListItem[] {
       otherPeerId: isDirect ? r.otherPeerId : null,
       isOnline: false,
       lastMessage,
-      updatedAt: r.lastCreatedAt ?? r.chatUpdatedAt
+      updatedAt: r.lastCreatedAt ?? r.chatUpdatedAt,
+      unreadCount: r.unreadCount
     };
   });
 }

@@ -19,6 +19,18 @@ const api = {
   link: {
     getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)
   },
+  sounds: {
+    getGlobal: () => ipcRenderer.invoke('sounds:getGlobal'),
+    setGlobal: (dataUrl: string, name: string) =>
+      ipcRenderer.invoke('sounds:setGlobal', dataUrl, name),
+    clearGlobal: () => ipcRenderer.invoke('sounds:clearGlobal'),
+    getForPeer: (peerId: string) => ipcRenderer.invoke('sounds:getForPeer', peerId),
+    setForPeer: (peerId: string, dataUrl: string, name: string) =>
+      ipcRenderer.invoke('sounds:setForPeer', peerId, dataUrl, name),
+    clearForPeer: (peerId: string) => ipcRenderer.invoke('sounds:clearForPeer', peerId),
+    getVolume: () => ipcRenderer.invoke('sounds:getVolume'),
+    setVolume: (v: number) => ipcRenderer.invoke('sounds:setVolume', v)
+  },
   transport: {
     getMyInfo: () => ipcRenderer.invoke('transport:getMyInfo'),
     isConnectedTo: (peerId: string) => ipcRenderer.invoke('transport:isConnectedTo', peerId),
@@ -80,7 +92,8 @@ const api = {
     },
     chats: {
       list: () => ipcRenderer.invoke('chats:list'),
-      ensureDirect: (peerId: string) => ipcRenderer.invoke('chats:ensureDirect', peerId)
+      ensureDirect: (peerId: string) => ipcRenderer.invoke('chats:ensureDirect', peerId),
+      markRead: (chatId: string) => ipcRenderer.invoke('chats:markRead', chatId)
     },
     messages: {
       list: (chatId: string, limit?: number, before?: number) =>

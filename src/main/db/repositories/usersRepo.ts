@@ -5,6 +5,12 @@ interface UserRaw extends Omit<User, 'isSelf'> {
   isSelf: number;
 }
 
+export function setUserNotificationSound(peerId: string, soundName: string | null): void {
+  getDb()
+    .prepare('UPDATE users SET notificationSound = ?, updatedAt = ? WHERE peerId = ?')
+    .run(soundName, Date.now(), peerId);
+}
+
 function toUser(raw: UserRaw | undefined): User | null {
   if (!raw) return null;
   return { ...raw, isSelf: raw.isSelf === 1 };

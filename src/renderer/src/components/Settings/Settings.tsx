@@ -18,7 +18,6 @@ interface SettingsTab {
   icon: React.ReactNode;
 }
 
-// TODO: заменить эмодзи-заглушки на реальные SVG-иконки из @renderer/assets.
 const TABS: SettingsTab[] = [
   { id: 'profile', label: 'Профиль', icon: <UserIcon height={25} width={25} /> },
   { id: 'notifications', label: 'Уведомления', icon: <NotificationIcon height={25} width={25} /> },

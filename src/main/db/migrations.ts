@@ -102,5 +102,13 @@ export const migrations: Migration[] = [
         PRIMARY KEY (entityType, entityId)
       );
     `
+  },
+  {
+    id: 2,
+    name: 'notifications_and_unread',
+    sql: `
+    ALTER TABLE users ADD COLUMN notificationSound TEXT;
+    ALTER TABLE chatMembers ADD COLUMN lastReadAt INTEGER;
+  `
   }
 ];

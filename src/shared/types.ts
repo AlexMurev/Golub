@@ -20,6 +20,7 @@ export interface User {
   lastSyncMessageId: string | null;
   createdAt: number | null;
   updatedAt: number | null;
+  notificationSound: string | null;
 }
 
 export interface Chat {
@@ -38,6 +39,7 @@ export interface ChatMember {
   role: ChatRole | null;
   joinedAt: number | null;
   leftAt: number | null;
+  lastReadAt: number | null;
 }
 
 export interface ReplyPreview {
@@ -72,6 +74,7 @@ export interface ChatListItem {
   isOnline: boolean;
   lastMessage: Message | null;
   updatedAt: number;
+  unreadCount: number;
 }
 
 export interface Attachment {
@@ -90,4 +93,9 @@ export interface Reaction {
   peerId: string;
   emoji: string;
   createdAt: number | null;
+}
+
+export interface SoundData {
+  name: string | null;
+  dataUrl: string | null;
 }

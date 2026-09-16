@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
-import type { UpdateStatus, User, ChatListItem, Message } from '@shared/types';
+import type { UpdateStatus, User, ChatListItem, Message, SoundData } from '@shared/types';
 
 interface API {
   setTitlebarColor: (color: string) => void;
@@ -11,6 +11,23 @@ interface API {
   };
   link: {
     getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  };
+  sounds: {
+    getGlobal: () => Promise<SoundData>;
+    setGlobal: (
+      dataUrl: string,
+      name: string
+    ) => Promise<{ success: boolean; sound?: SoundData; error?: string }>;
+    clearGlobal: () => Promise<{ success: boolean }>;
+    getForPeer: (peerId: string) => Promise<SoundData>;
+    setForPeer: (
+      peerId: string,
+      dataUrl: string,
+      name: string
+    ) => Promise<{ success: boolean; error?: string }>;
+    clearForPeer: (peerId: string) => Promise<{ success: boolean }>;
+    getVolume: () => Promise<number>;
+    setVolume: (v: number) => Promise<{ success: boolean; volume: number }>;
   };
   transport: {
     getMyInfo: () => Promise<{
@@ -46,6 +63,7 @@ interface API {
       ensureDirect: (
         peerId: string
       ) => Promise<{ success: boolean; chatId?: string; error?: string }>;
+      markRead: (chatId: string) => Promise<{ success: boolean }>;
     };
     messages: {
       list: (chatId: string, limit?: number, before?: number) => Promise<Message[]>;

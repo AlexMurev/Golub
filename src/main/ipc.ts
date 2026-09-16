@@ -19,12 +19,14 @@ import {
   ensureUser,
   updateUserAddress,
   setContactStatus,
-  removeUser
+  removeUser,
+  setUserNotificationSound
 } from './db/repositories/usersRepo';
 import {
   ensureDirectChat,
   getDirectChatId,
   listChatItems,
+  markChatRead,
   touchChat
 } from './db/repositories/chatsRepo';
 import {
@@ -37,8 +39,10 @@ import {
   getMessage,
   listPendingForChat
 } from './db/repositories/messagesRepo';
-import type { Message } from '@shared/types';
+import type { Message, SoundData } from '@shared/types';
 import { getLinkPreview } from 'link-preview-js';
+import { deleteSound, getDefaultSoundDataUrl, readSoundAsDataUrl, saveSound } from './sounds';
+import { getSetting, setSetting } from './db/repositories/settingsRepo';
 
 function peerFromDirectChat(chatId: string, selfId: string): string | null {
   const parts = chatId.split(':');
@@ -73,6 +77,22 @@ async function flushPendingForPeer(peerId: string): Promise<number> {
     return sent;
   }
   return 0;
+}
+
+function resolveSoundForPeer(peerId: string): SoundData {
+  const user = getUser(peerId);
+  if (user?.notificationSound) {
+    const dataUrl = readSoundAsDataUrl(user.notificationSound);
+    if (dataUrl) return { name: user.notificationSound, dataUrl };
+  }
+
+  const globalName = getSetting('sound:global');
+  if (globalName) {
+    const dataUrl = readSoundAsDataUrl(globalName);
+    if (dataUrl) return { name: globalName, dataUrl };
+  }
+
+  return { name: null, dataUrl: getDefaultSoundDataUrl() };
 }
 
 export function initIpc(mainWindow: BrowserWindow): void {
@@ -352,6 +372,96 @@ export function initIpc(mainWindow: BrowserWindow): void {
     ensureUser(peerId, null, null);
     const chatId = ensureDirectChat(self.peerId, peerId);
     return { success: true, chatId };
+  });
+
+  // =========================================================================
+  // Sounds
+  // =========================================================================
+
+  ipcMain.handle('sounds:getGlobal', () => {
+    const name = getSetting('sound:global');
+    if (name) {
+      const dataUrl = readSoundAsDataUrl(name);
+      if (dataUrl) return { name, dataUrl };
+      setSetting('sound:global', '');
+    }
+    return { name: null, dataUrl: getDefaultSoundDataUrl() };
+  });
+
+  ipcMain.handle('sounds:setGlobal', (_, dataUrl: string, originalName: string) => {
+    const old = getSetting('sound:global');
+    const result = saveSound(dataUrl, originalName);
+    if (!result.success || !result.fileName) {
+      return { success: false, error: result.error };
+    }
+    if (old && old !== result.fileName) deleteSound(old);
+
+    setSetting('sound:global', result.fileName);
+    const url = readSoundAsDataUrl(result.fileName);
+    return { success: true, sound: { name: result.fileName, dataUrl: url } as SoundData };
+  });
+
+  ipcMain.handle('sounds:clearGlobal', () => {
+    const old = getSetting('sound:global');
+    if (old) deleteSound(old);
+    setSetting('sound:global', '');
+    return { success: true };
+  });
+
+  ipcMain.handle('sounds:getForPeer', (_, peerId: string) => resolveSoundForPeer(peerId));
+
+  ipcMain.handle(
+    'sounds:setForPeer',
+    (_, peerId: string, dataUrl: string, originalName: string) => {
+      const user = getUser(peerId);
+      const old = user?.notificationSound ?? null;
+
+      const result = saveSound(dataUrl, originalName);
+      if (!result.success || !result.fileName) {
+        return { success: false, error: result.error };
+      }
+      if (old && old !== result.fileName) deleteSound(old);
+
+      setUserNotificationSound(peerId, result.fileName);
+      notifyDataChanged();
+      return { success: true };
+    }
+  );
+
+  ipcMain.handle('sounds:clearForPeer', (_, peerId: string) => {
+    const user = getUser(peerId);
+    if (user?.notificationSound) {
+      deleteSound(user.notificationSound);
+      setUserNotificationSound(peerId, null);
+      notifyDataChanged();
+    }
+    return { success: true };
+  });
+
+  ipcMain.handle('sounds:getVolume', () => {
+    const raw = getSetting('sound:volume');
+    if (raw === null) return 1;
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+  });
+
+  ipcMain.handle('sounds:setVolume', (_, v: number) => {
+    const clamped = Math.max(0, Math.min(1, v));
+    setSetting('sound:volume', String(clamped));
+    return { success: true, volume: clamped };
+  });
+
+  // =========================================================================
+  // Mark chat as read
+  // =========================================================================
+
+  ipcMain.handle('chats:markRead', (_, chatId: string) => {
+    const self = getSelf();
+    if (!self) return { success: false };
+
+    markChatRead(chatId, self.peerId);
+    notifyDataChanged();
+    return { success: true };
   });
 
   // =========================================================================

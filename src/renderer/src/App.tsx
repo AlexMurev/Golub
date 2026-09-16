@@ -9,8 +9,10 @@ import { FriendRequestsModal } from '@renderer/components/FriendRequestsModal/Fr
 import { useSelf } from '@renderer/hooks/useSelf';
 import { useChats } from '@renderer/hooks/useChats';
 import './App.css';
+import { useNotifications } from './hooks/useNotifications';
 
 function App(): React.JSX.Element {
+  useNotifications();
   const { self, isLoading: isSelfLoading } = useSelf();
   const { chats, currentChatId } = useChats();
 
