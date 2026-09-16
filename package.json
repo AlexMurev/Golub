@@ -1,6 +1,6 @@
 {
   "name": "Golub",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "It's messenger",
   "license": "PolyForm NonCommercial 1.0.0",
   "main": "./out/main/index.js",

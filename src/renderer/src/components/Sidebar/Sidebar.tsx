@@ -1,8 +1,8 @@
 import React from 'react';
 import { useChats } from '@renderer/hooks/useChats';
 import { useContacts } from '@renderer/hooks/useContacts';
+import { formatShortTime } from '@renderer/utils/dateUtils';
 import { UserBar } from '../UserBar/UserBar';
-import { SidebarListItem } from './SidebarListItem';
 import RequestsIcon from '@renderer/assets/requests.svg?react';
 import AddContactIcon from '@renderer/assets/add-contact.svg?react';
 import './Sidebar.css';
@@ -46,14 +46,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
             Добавьте контакт, чтобы начать переписку.
           </p>
         ) : (
-          chats.map((chat) => (
-            <SidebarListItem
-              key={chat.id}
-              chat={chat}
-              isActive={chat.id === currentChatId}
-              onClick={(): void => selectChat(chat.id)}
-            />
-          ))
+          chats.map((chat) => {
+            const avatarPlaceholder: string = chat.title.charAt(0).toUpperCase() || '?';
+
+            const previewText: string = ((): string => {
+              if (!chat.lastMessage) return 'Нет сообщений';
+              const prefix: string =
+                chat.type === 'group' ? `${chat.lastMessage.senderNickname}: ` : '';
+              const text: string = chat.lastMessage.text || '[вложение]';
+              return `${prefix}${text}`;
+            })();
+
+            const timeText: string = chat.lastMessage
+              ? formatShortTime(chat.lastMessage.createdAt)
+              : '';
+
+            const isActive: boolean = chat.id === currentChatId;
+
+            return (
+              <button
+                key={chat.id}
+                type="button"
+                className={`sidebar__item ${isActive ? 'sidebar__item--active' : ''}`}
+                onClick={(): void => selectChat(chat.id)}
+              >
+                <div className="sidebar__item-avatar-wrapper">
+                  {chat.avatar ? (
+                    <img src={chat.avatar} alt={chat.title} className="sidebar__item-avatar" />
+                  ) : (
+                    <div className="sidebar__item-avatar sidebar__item-avatar--placeholder">
+                      {avatarPlaceholder}
+                    </div>
+                  )}
+                </div>
+
+                <div className="sidebar__item-content">
+                  <div className="sidebar__item-top">
+                    <span className="sidebar__item-title">{chat.title}</span>
+                    {timeText && <span className="sidebar__item-time">{timeText}</span>}
+                  </div>
+                  <div className="sidebar__item-preview">{previewText}</div>
+                </div>
+              </button>
+            );
+          })
         )}
       </div>
 
