@@ -139,6 +139,10 @@
   opacity: 1;
 }
 
+.message-row--editing .message__reply-btn {
+  display: none;
+}
+
 .message__reply-btn:hover {
   background: var(--bg-elevated);
   color: var(--accent-primary);
@@ -223,4 +227,30 @@
 .message__video > div {
   width: 100%;
   height: 100%;
+}
+
+.message__edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message__edit-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+}
+
+.message__edit-hint {
+  color: var(--text-muted);
+  font-size: 0.42rem;
 }

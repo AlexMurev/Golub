@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import type { Message } from '@shared/types';
 import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
@@ -11,9 +11,12 @@ interface ChatMessageItemProps {
   msg: Message;
   isGrouped: boolean;
   isHighlighted: boolean;
+  isEditing: boolean;
   onContextMenu: (e: React.MouseEvent, msg: Message) => void;
   onReply: (msg: Message) => void;
   onJumpToMessage: (targetId: string) => void;
+  onSubmitEdit: (id: string, text: string) => void;
+  onCancelEdit: () => void;
 }
 
 function extractFirstUrl(text: string): string | null {
@@ -30,10 +33,35 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
     msg,
     isGrouped,
     isHighlighted,
+    isEditing,
     onContextMenu,
     onReply,
-    onJumpToMessage
+    onJumpToMessage,
+    onSubmitEdit,
+    onCancelEdit
   }): React.JSX.Element | null => {
+    const [editText, setEditText] = useState<string>(msg.text);
+    const [prevIsEditing, setPrevIsEditing] = useState<boolean>(isEditing);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+    // Сброс текста при входе в режим редактирования — во время рендера,
+    // чтобы не ловить каскадный ререндер через useEffect.
+    if (isEditing !== prevIsEditing) {
+      setPrevIsEditing(isEditing);
+      if (isEditing) setEditText(msg.text);
+    }
+
+    // Автофокус и авторазмер при входе в режим редактирования.
+    useEffect(() => {
+      if (!isEditing) return;
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }, [isEditing]);
+
     if (msg.deletedAt) return null;
 
     const avatarPlaceholder: string = msg.senderNickname.charAt(0).toUpperCase() || 'A';
@@ -42,10 +70,32 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
     const firstUrl: string | null = extractFirstUrl(msg.text);
     const isVideo: boolean = firstUrl !== null && isVideoUrl(firstUrl);
 
+    const handleEditChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+      setEditText(e.target.value);
+      const el = e.target;
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    };
+
+    const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const trimmed: string = editText.trim();
+        if (trimmed && trimmed !== msg.text) {
+          onSubmitEdit(msg.id, trimmed);
+        } else {
+          onCancelEdit();
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancelEdit();
+      }
+    };
+
     return (
       <div
         id={`msg-${msg.id}`}
-        className={`message-row ${isGrouped ? 'message-row--grouped' : ''} ${isHighlighted ? 'message-row--highlighted' : ''}`}
+        className={`message-row ${isGrouped ? 'message-row--grouped' : ''} ${isHighlighted ? 'message-row--highlighted' : ''} ${isEditing ? 'message-row--editing' : ''}`}
         onContextMenu={(e: React.MouseEvent): void => onContextMenu(e, msg)}
       >
         <div className="message-row__left-column">
@@ -99,15 +149,31 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
             </div>
           )}
 
-          <MessageText text={msg.text} />
-
-          {isVideo && firstUrl && (
-            <div className="message__video">
-              <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
+          {isEditing ? (
+            <div className="message__edit">
+              <textarea
+                ref={textareaRef}
+                className="message__edit-input"
+                value={editText}
+                onChange={handleEditChange}
+                onKeyDown={handleEditKeyDown}
+                rows={1}
+              />
+              <span className="message__edit-hint">escape — отмена • enter — сохранить</span>
             </div>
-          )}
+          ) : (
+            <>
+              <MessageText text={msg.text} />
 
-          {!isVideo && firstUrl && <LinkPreview url={firstUrl} />}
+              {isVideo && firstUrl && (
+                <div className="message__video">
+                  <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
+                </div>
+              )}
+
+              {!isVideo && firstUrl && <LinkPreview url={firstUrl} />}
+            </>
+          )}
         </div>
       </div>
     );

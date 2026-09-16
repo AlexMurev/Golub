@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import Chat from '@renderer/components/Chat/Chat';
 import { Sidebar } from '@renderer/components/Sidebar/Sidebar';
@@ -10,13 +10,9 @@ import { useSelf } from '@renderer/hooks/useSelf';
 import { useContacts } from '@renderer/hooks/useContacts';
 import { useChats } from '@renderer/hooks/useChats';
 import { useMessages } from '@renderer/hooks/useMessages';
+import { useMyAddress } from '@renderer/hooks/useMyAddress';
 import type { ReplyPreview } from '@shared/types';
 import './App.css';
-
-interface EditTarget {
-  id: string;
-  text: string;
-}
 
 function App(): React.JSX.Element {
   const { self, updateSelf, isLoading: isSelfLoading } = useSelf();
@@ -34,30 +30,14 @@ function App(): React.JSX.Element {
     deleteMessage
   } = useMessages(currentChatId, self?.peerId ?? null);
 
+  const myAddress = useMyAddress();
+
   const [input, setInput] = useState<string>('');
   const [replyTo, setReplyTo] = useState<ReplyPreview | null>(null);
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAddContactOpen, setIsAddContactOpen] = useState<boolean>(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState<boolean>(false);
-  const [myAddress, setMyAddress] = useState<string | null>(null);
-
-  useEffect((): (() => void) => {
-    let cancelled = false;
-
-    (async (): Promise<void> => {
-      try {
-        const info = await window.api.transport.getMyInfo();
-        if (!cancelled && info) setMyAddress(info.address);
-      } catch (err) {
-        console.error('Failed to load transport info:', err);
-      }
-    })();
-
-    return (): void => {
-      cancelled = true;
-    };
-  }, []);
 
   if (isSelfLoading) {
     return (
@@ -77,32 +57,29 @@ function App(): React.JSX.Element {
 
   const currentChat = chats.find((c) => c.id === currentChatId) ?? null;
 
-  const handleSendOrEdit = async (): Promise<void> => {
+  const handleSend = async (): Promise<void> => {
     if (!input.trim()) return;
-
-    if (editTarget) {
-      await editMsg(editTarget.id, input);
-      setEditTarget(null);
-    } else {
-      await sendMsg(input, replyTo?.id ?? null);
-      setReplyTo(null);
-    }
+    await sendMsg(input, replyTo?.id ?? null);
+    setReplyTo(null);
     setInput('');
   };
 
-  const handleStartEdit = (msg: { id: string; text: string }): void => {
-    setEditTarget(msg);
+  const handleStartEdit = (id: string): void => {
+    setEditingId(id);
     setReplyTo(null);
-    setInput(msg.text);
+  };
+
+  const handleSubmitEdit = async (id: string, text: string): Promise<void> => {
+    await editMsg(id, text);
+    setEditingId(null);
   };
 
   const handleCancelEdit = (): void => {
-    setEditTarget(null);
-    setInput('');
+    setEditingId(null);
   };
 
   const handleSelectChat = (chatId: string): void => {
-    setEditTarget(null);
+    setEditingId(null);
     setReplyTo(null);
     setInput('');
     selectChat(chatId);
@@ -180,13 +157,14 @@ function App(): React.JSX.Element {
               isLoading={isLoading}
               hasMore={hasMore}
               isLoadingOlder={isLoadingOlder}
+              editingId={editingId}
               onLoadOlder={handleLoadOlder}
               input={input}
               setInput={setInput}
-              sendMessage={handleSendOrEdit}
+              sendMessage={handleSend}
               deleteMessage={deleteMessage}
               onStartEdit={handleStartEdit}
-              isEditing={!!editTarget}
+              onSubmitEdit={handleSubmitEdit}
               onCancelEdit={handleCancelEdit}
               replyTo={replyTo}
               setReplyTo={setReplyTo}
@@ -198,19 +176,19 @@ function App(): React.JSX.Element {
       </Group>
 
       <AddContactModal
+        isOpen={isAddContactOpen}
         onClose={(): void => setIsAddContactOpen(false)}
         onSubmit={handleAddContact}
-        isOpen={isAddContactOpen}
       />
 
       <FriendRequestsModal
+        isOpen={isRequestsOpen}
         incoming={incoming}
         outgoing={outgoing}
         onAccept={handleAcceptRequest}
         onReject={handleRejectRequest}
         onCancel={handleCancelRequest}
         onClose={(): void => setIsRequestsOpen(false)}
-        isOpen={isRequestsOpen}
       />
 
       <Settings

@@ -1,7 +1,6 @@
 import React from 'react';
 import { ChatMessages } from './ChatMessages/ChatMessages';
 import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
-import { ChatEditPreview } from './ChatEditPreview/ChatEditPreview';
 import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
 import type { Message, ChatListItem, ReplyPreview } from '@shared/types';
@@ -15,13 +14,14 @@ interface ChatProps {
   isLoading: boolean;
   hasMore: boolean;
   isLoadingOlder: boolean;
+  editingId: string | null;
   onLoadOlder: () => void;
   input: string;
   setInput: (value: string) => void;
   sendMessage: () => void;
   deleteMessage: (messageId: string) => void;
-  onStartEdit: (msg: { id: string; text: string }) => void;
-  isEditing: boolean;
+  onStartEdit: (id: string) => void;
+  onSubmitEdit: (id: string, text: string) => void;
   onCancelEdit: () => void;
   replyTo: ReplyPreview | null;
   setReplyTo: (value: ReplyPreview | null) => void;
@@ -35,13 +35,14 @@ const Chat: React.FC<ChatProps> = ({
   isLoading,
   hasMore,
   isLoadingOlder,
+  editingId,
   onLoadOlder,
   input,
   setInput,
   sendMessage,
   deleteMessage,
   onStartEdit,
-  isEditing,
+  onSubmitEdit,
   onCancelEdit,
   replyTo,
   setReplyTo
@@ -88,22 +89,23 @@ const Chat: React.FC<ChatProps> = ({
         isLoading={isLoading}
         hasMore={hasMore}
         isLoadingOlder={isLoadingOlder}
+        editingId={editingId}
         onLoadOlder={onLoadOlder}
         onReply={handleReply}
+        onStartEdit={onStartEdit}
+        onSubmitEdit={onSubmitEdit}
+        onCancelEdit={onCancelEdit}
         onDelete={deleteMessage}
-        onEdit={onStartEdit}
       />
 
-      {isEditing && <ChatEditPreview onCancel={onCancelEdit} />}
-
-      {replyTo && !isEditing && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
+      {replyTo && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
 
       <ChatInput
         input={input}
         setInput={setInput}
         sendMessage={sendMessage}
         isConnected={true}
-        hasReply={!!replyTo || isEditing}
+        hasReply={!!replyTo}
       />
     </div>
   );

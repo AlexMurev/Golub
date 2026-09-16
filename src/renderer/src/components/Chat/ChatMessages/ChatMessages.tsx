@@ -18,9 +18,12 @@ interface ChatMessagesProps {
   isLoading: boolean;
   hasMore: boolean;
   isLoadingOlder: boolean;
+  editingId: string | null;
   onLoadOlder: () => void;
   onReply: (message: Message) => void;
-  onEdit: (msg: { id: string; text: string }) => void;
+  onStartEdit: (id: string) => void;
+  onSubmitEdit: (id: string, text: string) => void;
+  onCancelEdit: () => void;
   onDelete: (messageId: string) => void;
 }
 
@@ -32,9 +35,12 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   isLoading,
   hasMore,
   isLoadingOlder,
+  editingId,
   onLoadOlder,
   onReply,
-  onEdit,
+  onStartEdit,
+  onSubmitEdit,
+  onCancelEdit,
   onDelete
 }): React.JSX.Element => {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -74,7 +80,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     if (msg.senderId === myId) {
       actions.push({
         label: 'Редактировать',
-        onClick: (): void => onEdit({ id: msg.id, text: msg.text }),
+        onClick: (): void => onStartEdit(msg.id),
         icon: <EditIcon width="12" height="12" />
       });
       actions.push({
@@ -88,8 +94,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     return actions;
   };
 
-  // Не монтируем Virtuoso, пока не пришли данные — иначе initialTopMostItemIndex
-  // вычисляется от пустого массива, и позиция скролла оказывается неверной.
   if (isLoading || visible.length === 0) {
     return (
       <div className="chat-messages">
@@ -110,8 +114,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           if (hasMore && !isLoadingOlder) onLoadOlder();
         }}
         itemContent={(index, msg): React.JSX.Element => {
-          // index — глобальный индекс Virtuoso (с учётом firstItemIndex).
-          // localIndex — реальная позиция в массиве visible.
           const localIndex: number = index - firstItemIndex;
           const prevMsg: Message | null = localIndex > 0 ? visible[localIndex - 1] : null;
 
@@ -128,9 +130,12 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 msg={msg}
                 isGrouped={isGrouped}
                 isHighlighted={highlightedId === msg.id}
+                isEditing={editingId === msg.id}
                 onContextMenu={handleContextMenu}
                 onReply={onReply}
                 onJumpToMessage={handleJumpToMessage}
+                onSubmitEdit={onSubmitEdit}
+                onCancelEdit={onCancelEdit}
               />
             </div>
           );
