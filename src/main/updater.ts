@@ -9,7 +9,6 @@ autoUpdater.logger = log;
 log.transports.file.level = 'info';
 autoUpdater.autoDownload = false;
 
-// Описываем строгий тип для статусов, передаваемых в интерфейс
 export type UpdateStatus =
   'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'ready';
 

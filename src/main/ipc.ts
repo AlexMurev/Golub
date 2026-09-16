@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron';
+import { ipcMain, BrowserWindow, app } from 'electron';
 import { WebSocket } from 'ws';
 import {
   getMyInfo,
@@ -172,6 +172,7 @@ export function initIpc(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('transport:getMyInfo', () => getMyInfo());
   ipcMain.handle('transport:isConnectedTo', (_, peerId: string) => isConnectedTo(peerId));
+  ipcMain.handle('app:getVersion', () => app.getVersion());
 
   // =========================================================================
   // Self

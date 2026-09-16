@@ -1,0 +1,56 @@
+.settings-profile__avatar-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.4rem;
+}
+
+.settings-profile__avatar-preview-wrapper {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--bg-tertiary);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.settings-profile__avatar-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-profile__avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--accent-primary);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.settings-profile__avatar-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inset: 0;
+  background: var(--bg-overlay);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.settings-profile__avatar-overlay-text {
+  color: var(--text-primary);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.settings-profile__avatar-preview-wrapper:hover .settings-profile__avatar-overlay {
+  opacity: 1;
+}

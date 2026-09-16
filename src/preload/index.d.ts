@@ -6,6 +6,9 @@ interface API {
   checkForUpdates: () => void;
   downloadAndInstall: () => void;
   onUpdateStatus: (cb: (status: UpdateStatus) => void) => () => void;
+  app: {
+    getVersion: () => Promise<string>;
+  };
   link: {
     getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
   };

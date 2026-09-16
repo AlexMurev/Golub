@@ -3,7 +3,6 @@ import { dirname, join } from 'path';
 import { mkdirSync } from 'fs';
 
 export function getDataDir(): string {
-  // Явное переопределение через env (для тестов нескольких экземпляров)
   const override = process.env.GOLUB_DATA_DIR;
   if (override) {
     return override;

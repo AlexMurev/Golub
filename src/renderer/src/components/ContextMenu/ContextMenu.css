@@ -15,7 +15,7 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px;
   background: transparent;
   border: none;
   border-radius: var(--radius);
@@ -29,12 +29,11 @@
 }
 
 .context-menu__item:hover {
-  background: var(--accent-primary);
-  color: var(--text-primary);
+  background: var(--bg-elevated);
 }
 
 .context-menu__item:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--bg-elevated);
   outline-offset: -2px;
 }
 
@@ -54,6 +53,5 @@
 }
 
 .context-menu__item--danger:hover {
-  background: var(--accent-danger);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
 }

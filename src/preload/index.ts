@@ -13,6 +13,9 @@ const api = {
       ipcRenderer.removeListener('update-status', listener);
     };
   },
+  app: {
+    getVersion: () => ipcRenderer.invoke('app:getVersion') as Promise<string>
+  },
   link: {
     getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)
   },

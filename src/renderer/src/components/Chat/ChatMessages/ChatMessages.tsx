@@ -68,12 +68,12 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       {
         label: 'Ответить',
         onClick: (): void => onReply(msg),
-        icon: <ReplyIcon width="12" height="12" />
+        icon: <ReplyIcon width={20} height={20} />
       },
       {
         label: 'Копировать текст',
         onClick: (): void => handleCopyText(msg.text),
-        icon: <CopyIcon width="12" height="12" />
+        icon: <CopyIcon width={20} height={20} />
       }
     ];
 
@@ -81,13 +81,13 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       actions.push({
         label: 'Редактировать',
         onClick: (): void => onStartEdit(msg.id),
-        icon: <EditIcon width="12" height="12" />
+        icon: <EditIcon width={20} height={20} />
       });
       actions.push({
         label: 'Удалить сообщение',
         onClick: (): void => onDelete(msg.id),
         isDanger: true,
-        icon: <DeleteIcon width="12" height="12" />
+        icon: <DeleteIcon width={20} height={20} />
       });
     }
 
@@ -125,19 +125,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           );
 
           return (
-            <div className="chat-messages__row">
-              <ChatMessageItem
-                msg={msg}
-                isGrouped={isGrouped}
-                isHighlighted={highlightedId === msg.id}
-                isEditing={editingId === msg.id}
-                onContextMenu={handleContextMenu}
-                onReply={onReply}
-                onJumpToMessage={handleJumpToMessage}
-                onSubmitEdit={onSubmitEdit}
-                onCancelEdit={onCancelEdit}
-              />
-            </div>
+            <ChatMessageItem
+              msg={msg}
+              isGrouped={isGrouped}
+              isHighlighted={highlightedId === msg.id}
+              isEditing={editingId === msg.id}
+              onContextMenu={handleContextMenu}
+              onReply={onReply}
+              onJumpToMessage={handleJumpToMessage}
+              onSubmitEdit={onSubmitEdit}
+              onCancelEdit={onCancelEdit}
+            />
           );
         }}
         components={{

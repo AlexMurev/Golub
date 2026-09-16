@@ -67,8 +67,8 @@
 
 .message__avatar {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   background: var(--bg-elevated);
   border-radius: 50%;
   object-fit: cover;
@@ -80,7 +80,7 @@
   justify-content: center;
   background: var(--accent-primary);
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
   user-select: none;
 }

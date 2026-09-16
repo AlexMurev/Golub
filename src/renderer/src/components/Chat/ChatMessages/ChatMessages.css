@@ -14,13 +14,9 @@
   scrollbar-color: var(--bg-tertiary) transparent;
 }
 
-.chat-messages__row {
-  padding: 0 16px;
-}
-
 .chat-messages__loader {
   padding: 8px;
   color: var(--text-muted);
-  font-size: 0.46rem;
+  font-size: 0.5rem;
   text-align: center;
 }
