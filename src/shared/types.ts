@@ -65,6 +65,7 @@ export interface Message {
   editedAt: number | null;
   deletedAt: number | null;
   status: MessageStatus | null;
+  attachments: Attachment[];
 }
 
 export interface ChatListItem {
@@ -79,6 +80,8 @@ export interface ChatListItem {
   unreadCount: number;
 }
 
+export type AttachmentTransferState = 'pending' | 'complete' | 'failed';
+
 export interface Attachment {
   id: string;
   messageId: string;
@@ -86,6 +89,11 @@ export interface Attachment {
   mimeType: string | null;
   size: number | null;
   filePath: string | null;
+  transferState: AttachmentTransferState | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  orderIndex: number;
   createdAt: number | null;
   deletedAt: number | null;
 }

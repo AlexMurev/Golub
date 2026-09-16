@@ -81,4 +81,9 @@ export function registerAppIpc(ctx: IpcContext): void {
     applyBadge();
     return { success: true };
   });
+
+  ipcMain.handle('app:setFullScreen', (_, value: boolean) => {
+    ctx.mainWindow.setFullScreen(value);
+    return { success: true };
+  });
 }

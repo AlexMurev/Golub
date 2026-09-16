@@ -27,6 +27,8 @@ import {
 import { flushPendingForPeer } from './helpers';
 import type { IpcContext } from './context';
 import type { Message } from '@shared/types';
+import { insertAttachment } from '../db/repositories/attachmentsRepo';
+import { handleIncoming, retryPendingForPeer } from '../transfer/manager';
 
 export function registerTransportIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -35,6 +37,13 @@ export function registerTransportIpc(ctx: IpcContext): void {
 
   onMessage((from, payload) => {
     const p = payload as { type?: string; payload?: unknown };
+
+    // Перехватываем file-* сообщения для TransferManager
+    if (p.type && p.type.startsWith('file-')) {
+      handleIncoming(from, payload);
+      return;
+    }
+
     const self = getSelf();
     if (!self) return;
 
@@ -83,6 +92,17 @@ export function registerTransportIpc(ctx: IpcContext): void {
       ensureUser(incoming.senderId, incoming.senderNickname, incoming.senderAvatar);
       ensureDirectChat(self.peerId, incoming.senderId);
       upsertMessage({ ...incoming, status: null });
+
+      // Сохраняем attachments как pending, БЕЗ filePath — файла у нас ещё нет
+      for (const att of incoming.attachments ?? []) {
+        insertAttachment({
+          ...att,
+          messageId: incoming.id,
+          filePath: null,
+          transferState: 'pending'
+        });
+      }
+
       touchChat(incoming.chatId);
       ctx.send('transport:message', from, payload);
       return;
@@ -109,6 +129,9 @@ export function registerTransportIpc(ctx: IpcContext): void {
     ctx.send('transport:peerOnline', peerId);
     const flushed = await flushPendingForPeer(peerId);
     if (flushed > 0) ctx.notifyDataChanged();
+
+    // Перезапускаем pending-передачи файлов для этого пира
+    retryPendingForPeer(peerId);
   });
   onPeerOffline((peerId) => ctx.send('transport:peerOffline', peerId));
   onNewPeer((peerId) => ctx.send('transport:newPeer', peerId));

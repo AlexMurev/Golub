@@ -6,6 +6,8 @@ import { registerChatsIpc } from './chats';
 import { registerMessagesIpc } from './messages';
 import { registerSoundsIpc } from './sounds';
 import { registerAppIpc } from './app';
+import { registerFilesIpc } from './files';
+import { registerTransferIpc } from './transfer';
 
 export function initIpc(mainWindow: BrowserWindow): void {
   const ctx = createContext(mainWindow);
@@ -17,6 +19,8 @@ export function initIpc(mainWindow: BrowserWindow): void {
   registerChatsIpc(ctx);
   registerMessagesIpc(ctx);
   registerSoundsIpc(ctx);
+  registerTransferIpc(ctx);
+  registerFilesIpc(ctx);
   registerAppIpc(ctx);
 
   console.log('IPC initialized');

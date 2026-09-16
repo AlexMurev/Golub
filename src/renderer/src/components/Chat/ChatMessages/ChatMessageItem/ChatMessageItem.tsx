@@ -6,6 +6,7 @@ import ReplyIcon from '@renderer/assets/reply.svg?react';
 import { MessageText } from './MessageText';
 import { LinkPreview } from './LinkPreview';
 import './ChatMessageItem.css';
+import { AttachmentCard } from './AttachmentCard/AttachmentCard';
 
 interface ChatMessageItemProps {
   msg: Message;
@@ -164,7 +165,13 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
           ) : (
             <>
               <MessageText text={msg.text} />
-
+              {msg.attachments.length > 0 && (
+                <div className="message__attachments">
+                  {msg.attachments.map((att) => (
+                    <AttachmentCard key={att.id} attachment={att} />
+                  ))}
+                </div>
+              )}
               {isVideo && firstUrl && (
                 <div className="message__video">
                   <ReactPlayer src={firstUrl} width="100%" height="100%" controls />

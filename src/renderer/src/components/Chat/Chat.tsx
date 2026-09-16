@@ -5,7 +5,8 @@ import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
 import { useMessages } from '@renderer/hooks/useMessages';
 import { useSelf } from '@renderer/hooks/useSelf';
-import type { Message, ChatListItem, ReplyPreview } from '@shared/types';
+import type { Attachment, Message, ChatListItem, ReplyPreview } from '@shared/types';
+import type { PendingAttachment } from './ChatInput/AttachmentPreview/AttachmentPreview';
 import './Chat.css';
 
 interface ChatProps {
@@ -30,12 +31,15 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
   const [input, setInput] = useState<string>('');
   const [replyTo, setReplyTo] = useState<ReplyPreview | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
 
   const handleSend = async (): Promise<void> => {
-    if (!input.trim()) return;
-    await sendMessage(input, replyTo?.id ?? null);
+    if (!input.trim() && pendingAttachments.length === 0) return;
+    const attachments: Attachment[] = pendingAttachments.map((p) => p.attachment);
+    await sendMessage(input, replyTo?.id ?? null, attachments);
     setReplyTo(null);
     setInput('');
+    setPendingAttachments([]);
   };
 
   const handleStartEdit = (id: string): void => {
@@ -72,6 +76,59 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
 
   const cancelReply = (): void => {
     setReplyTo(null);
+  };
+
+  const handleAddAttachments = (files: FileList): void => {
+    const maxNew = 10 - pendingAttachments.length;
+    if (maxNew <= 0) {
+      alert('Максимум 10 файлов на сообщение.');
+      return;
+    }
+
+    const arr = Array.from(files).slice(0, maxNew);
+
+    arr.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onloadend = async (): Promise<void> => {
+        if (typeof reader.result !== 'string') return;
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+
+        const saved = await window.api.files.save(base64, file.name);
+        if (!saved.success || !saved.filePath) {
+          console.error('Failed to save file:', saved.error);
+          return;
+        }
+
+        const attachment: Attachment = {
+          id: crypto.randomUUID(),
+          messageId: '',
+          fileName: file.name,
+          mimeType: file.type || null,
+          size: saved.size ?? file.size,
+          filePath: saved.filePath,
+          transferState: null,
+          width: null,
+          height: null,
+          duration: null,
+          orderIndex: pendingAttachments.length + idx,
+          createdAt: Date.now(),
+          deletedAt: null
+        };
+
+        const isImage = file.type.startsWith('image/');
+
+        setPendingAttachments((prev) => [
+          ...prev,
+          { attachment, previewUrl: isImage ? dataUrl : null }
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveAttachment = (id: string): void => {
+    setPendingAttachments((prev) => prev.filter((p) => p.attachment.id !== id));
   };
 
   const subtitle: string =
@@ -116,6 +173,9 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         sendMessage={handleSend}
         isConnected={true}
         hasReply={!!replyTo}
+        attachments={pendingAttachments}
+        onAddAttachments={handleAddAttachments}
+        onRemoveAttachment={handleRemoveAttachment}
       />
     </div>
   );

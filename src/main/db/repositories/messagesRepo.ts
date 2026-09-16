@@ -1,5 +1,6 @@
 import { getDb } from '../index';
 import type { Message, MessageStatus } from '@shared/types';
+import { listForMessages } from './attachmentsRepo';
 
 interface MessageRaw {
   id: string;
@@ -36,6 +37,18 @@ const SELECT_WITH_JOINS = `
   LEFT JOIN users ru ON ru.peerId = r.senderId
 `;
 
+function attachAttachments(messages: Message[]): Message[] {
+  if (messages.length === 0) return messages;
+
+  const ids = messages.map((m) => m.id);
+  const byMessage = listForMessages(ids);
+
+  return messages.map((m) => ({
+    ...m,
+    attachments: byMessage.get(m.id) ?? []
+  }));
+}
+
 function toMessage(raw: MessageRaw): Message {
   return {
     id: raw.id,
@@ -57,7 +70,8 @@ function toMessage(raw: MessageRaw): Message {
     createdAt: raw.createdAt,
     editedAt: raw.editedAt,
     deletedAt: raw.deletedAt,
-    status: raw.status
+    status: raw.status,
+    attachments: []
   };
 }
 
@@ -72,13 +86,16 @@ export function listMessages(chatId: string, limit = 200, before?: number): Mess
     before !== undefined ? stmt.all(chatId, before, limit) : stmt.all(chatId, limit)
   ) as MessageRaw[];
 
-  return rows.reverse().map(toMessage);
+  const messages = rows.reverse().map(toMessage);
+  return attachAttachments(messages);
 }
 
 export function getMessage(id: string): Message | null {
   const row = getDb().prepare(`${SELECT_WITH_JOINS} WHERE m.id = ?`).get(id) as
     MessageRaw | undefined;
-  return row ? toMessage(row) : null;
+  if (!row) return null;
+  const [msg] = attachAttachments([toMessage(row)]);
+  return msg;
 }
 
 export function insertMessage(msg: Message, replyToId?: string | null): void {
@@ -152,5 +169,5 @@ export function listPendingForChat(chatId: string): Message[] {
        ORDER BY m.createdAt ASC`
     )
     .all(chatId) as MessageRaw[];
-  return rows.map(toMessage);
+  return attachAttachments(rows.map(toMessage));
 }

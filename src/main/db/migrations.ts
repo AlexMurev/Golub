@@ -118,5 +118,16 @@ export const migrations: Migration[] = [
     ALTER TABLE users ADD COLUMN notificationVolume REAL;
     ALTER TABLE users ADD COLUMN notificationMono INTEGER;
   `
+  },
+  {
+    id: 4,
+    name: 'attachment_fields',
+    sql: `
+    ALTER TABLE attachments ADD COLUMN transferState TEXT;
+    ALTER TABLE attachments ADD COLUMN width INTEGER;
+    ALTER TABLE attachments ADD COLUMN height INTEGER;
+    ALTER TABLE attachments ADD COLUMN duration REAL;
+    ALTER TABLE attachments ADD COLUMN orderIndex INTEGER NOT NULL DEFAULT 0;
+  `
   }
 ];

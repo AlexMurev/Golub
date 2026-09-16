@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Message } from '@shared/types';
+import type { Attachment, Message } from '@shared/types';
 
 const PAGE_SIZE = 50;
 
@@ -9,7 +9,7 @@ export interface UseMessagesResult {
   hasMore: boolean;
   isLoadingOlder: boolean;
   firstItemIndex: number;
-  sendMessage: (text: string, replyToId: string | null) => Promise<void>;
+  sendMessage: (text: string, replyToId: string | null, attachments: Attachment[]) => Promise<void>;
   editMessage: (messageId: string, newText: string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   loadOlder: () => Promise<void>;
@@ -102,8 +102,9 @@ export function useMessages(chatId: string | null, selfPeerId: string | null): U
   const displayMessages = messagesChatId === chatId ? messages : [];
 
   const sendMessage = useCallback(
-    async (text: string, replyToId: string | null): Promise<void> => {
-      if (!chatId || !selfPeerId || !text.trim()) return;
+    async (text: string, replyToId: string | null, attachments: Attachment[]): Promise<void> => {
+      if (!chatId || !selfPeerId) return;
+      if (!text.trim() && attachments.length === 0) return;
 
       const parts = chatId.split(':');
       if (parts.length !== 3 || parts[0] !== 'direct') {
@@ -114,7 +115,7 @@ export function useMessages(chatId: string | null, selfPeerId: string | null): U
       const peerId = idA === selfPeerId ? idB : idA;
 
       try {
-        const result = await window.api.db.messages.send(peerId, text, replyToId);
+        const result = await window.api.db.messages.send(peerId, text, replyToId, attachments);
         if (!result.success) {
           console.error('Send failed:', result.error);
           return;

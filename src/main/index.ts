@@ -1,4 +1,3 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
@@ -7,10 +6,29 @@ import { initDb, closeDb } from './db';
 import { initIpc } from './ipc';
 import { ensureSelfUser } from './bootstrap';
 import { startTransportAuto, stopTransport } from './transport';
-
+import { getAttachment } from './db/repositories/attachmentsRepo';
+import { getAttachmentFullPath } from './files';
+import { protocol, app, BrowserWindow, ipcMain, shell } from 'electron';
+import { createReadStream, statSync, existsSync } from 'fs';
+import { Readable } from 'stream';
 import { initUpdater } from './updater';
 
 const windowIcon: string = process.platform === 'win32' ? iconIco : icon;
+
+// Регистрируем привилегированную схему ДО app.whenReady()
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'golub-file',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+      corsEnabled: true,
+      bypassCSP: false
+    }
+  }
+]);
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -69,6 +87,76 @@ app.whenReady().then(async (): Promise<void> => {
 
   initDb();
   ensureSelfUser();
+
+  // Обработчик кастомного протокола golub-file://<attachmentId>
+  // Отдаёт файл с диска с поддержкой Range-запросов (важно для видео).
+  protocol.handle('golub-file', async (request) => {
+    try {
+      const url = new URL(request.url);
+      const attachmentId = url.hostname;
+      if (!attachmentId) return new Response(null, { status: 400 });
+
+      const att = getAttachment(attachmentId);
+      if (!att?.filePath) return new Response(null, { status: 404 });
+
+      const fullPath = getAttachmentFullPath(att.filePath);
+      if (!existsSync(fullPath)) return new Response(null, { status: 404 });
+
+      const stat = statSync(fullPath);
+      const contentType = att.mimeType ?? 'application/octet-stream';
+      const range = request.headers.get('Range');
+
+      const baseHeaders: Record<string, string> = {
+        'Content-Type': contentType,
+        'Accept-Ranges': 'bytes',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store'
+      };
+
+      if (range) {
+        const match = /bytes=(\d+)-(\d*)/.exec(range);
+        if (!match) {
+          return new Response(null, { status: 416 });
+        }
+
+        const start = parseInt(match[1], 10);
+        const end = match[2] ? parseInt(match[2], 10) : stat.size - 1;
+
+        if (start >= stat.size || end >= stat.size || start > end) {
+          return new Response(null, {
+            status: 416,
+            headers: { 'Content-Range': `bytes */${stat.size}` }
+          });
+        }
+
+        const nodeStream = createReadStream(fullPath, { start, end });
+        const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+
+        return new Response(webStream, {
+          status: 206,
+          headers: {
+            ...baseHeaders,
+            'Content-Length': String(end - start + 1),
+            'Content-Range': `bytes ${start}-${end}/${stat.size}`
+          }
+        });
+      }
+
+      const nodeStream = createReadStream(fullPath);
+      const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+
+      return new Response(webStream, {
+        status: 200,
+        headers: {
+          ...baseHeaders,
+          'Content-Length': String(stat.size)
+        }
+      });
+    } catch (err) {
+      console.error('golub-file error:', err);
+      return new Response(null, { status: 500 });
+    }
+  });
 
   app.on('browser-window-created', (_, window: BrowserWindow): void => {
     optimizer.watchWindowShortcuts(window);

@@ -11,6 +11,36 @@ interface API {
     setBadge: (hasUnread: boolean) => Promise<{ success: boolean }>;
     getBadgeEnabled: () => Promise<boolean>;
     setBadgeEnabled: (enabled: boolean) => Promise<{ success: boolean }>;
+    setFullScreen: (value: boolean) => Promise<{ success: boolean }>;
+  };
+  transfer: {
+    cancel: (attachmentId: string) => Promise<{ success: boolean }>;
+    onProgress: (
+      cb: (data: {
+        attachmentId: string;
+        direction: 'up' | 'down';
+        transferred: number;
+        total: number;
+      }) => void
+    ) => () => void;
+    onComplete: (cb: (attachmentId: string, direction: 'up' | 'down') => void) => () => void;
+    onFailed: (
+      cb: (attachmentId: string, direction: 'up' | 'down', error: string) => void
+    ) => () => void;
+  };
+  files: {
+    save: (
+      base64: string,
+      name: string
+    ) => Promise<{
+      success: boolean;
+      filePath?: string;
+      size?: number;
+      error?: string;
+    }>;
+    open: (attachmentId: string) => Promise<{ success: boolean; error?: string }>;
+    saveAs: (attachmentId: string) => Promise<{ success: boolean; error?: string }>;
+    delete: (attachmentId: string) => Promise<{ success: boolean }>;
   };
   link: {
     getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
@@ -74,7 +104,8 @@ interface API {
       send: (
         peerId: string,
         text: string,
-        replyToId: string | null
+        replyToId: string | null,
+        attachments: Attachment[]
       ) => Promise<{ success: boolean; message?: Message; error?: string }>;
       edit: (messageId: string, newText: string) => Promise<{ success: boolean }>;
       delete: (messageId: string) => Promise<{ success: boolean }>;

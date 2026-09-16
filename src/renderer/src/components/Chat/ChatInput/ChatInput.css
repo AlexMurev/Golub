@@ -64,3 +64,46 @@
   color: var(--text-muted);
   cursor: not-allowed;
 }
+
+.chat-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.chat-input-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+}
+
+.chat-input-area__attach-button {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.chat-input-area__attach-button:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.chat-input-area__attach-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -18,7 +18,39 @@ const api = {
     setBadge: (hasUnread: boolean) => ipcRenderer.invoke('app:setBadge', hasUnread),
     getBadgeEnabled: () => ipcRenderer.invoke('app:getBadgeEnabled') as Promise<boolean>,
     setBadgeEnabled: (enabled: boolean) =>
-      ipcRenderer.invoke('app:setBadgeEnabled', enabled) as Promise<{ success: boolean }>
+      ipcRenderer.invoke('app:setBadgeEnabled', enabled) as Promise<{ success: boolean }>,
+    setFullScreen: (value: boolean) => ipcRenderer.invoke('app:setFullScreen', value)
+  },
+  transfer: {
+    cancel: (attachmentId: string) => ipcRenderer.invoke('transfer:cancel', attachmentId),
+    onProgress: (cb: (data: unknown) => void) => {
+      const listener = (_e: unknown, data: unknown): void => cb(data);
+      ipcRenderer.on('transfer:progress', listener);
+      return (): void => {
+        ipcRenderer.removeListener('transfer:progress', listener);
+      };
+    },
+    onComplete: (cb: (attachmentId: string, direction: string) => void) => {
+      const listener = (_e: unknown, id: string, dir: string): void => cb(id, dir);
+      ipcRenderer.on('transfer:complete', listener);
+      return (): void => {
+        ipcRenderer.removeListener('transfer:complete', listener);
+      };
+    },
+    onFailed: (cb: (attachmentId: string, direction: string, error: string) => void) => {
+      const listener = (_e: unknown, id: string, dir: string, error: string): void =>
+        cb(id, dir, error);
+      ipcRenderer.on('transfer:failed', listener);
+      return (): void => {
+        ipcRenderer.removeListener('transfer:failed', listener);
+      };
+    }
+  },
+  files: {
+    save: (base64: string, name: string) => ipcRenderer.invoke('files:save', base64, name),
+    open: (attachmentId: string) => ipcRenderer.invoke('files:open', attachmentId),
+    saveAs: (attachmentId: string) => ipcRenderer.invoke('files:saveAs', attachmentId),
+    delete: (attachmentId: string) => ipcRenderer.invoke('files:delete', attachmentId)
   },
   link: {
     getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)
@@ -108,8 +140,8 @@ const api = {
     messages: {
       list: (chatId: string, limit?: number, before?: number) =>
         ipcRenderer.invoke('messages:list', chatId, limit, before),
-      send: (peerId: string, text: string, replyToId: string | null) =>
-        ipcRenderer.invoke('messages:send', peerId, text, replyToId),
+      send: (peerId: string, text: string, replyToId: string | null, attachments: unknown[]) =>
+        ipcRenderer.invoke('messages:send', peerId, text, replyToId, attachments),
       edit: (messageId: string, newText: string) =>
         ipcRenderer.invoke('messages:edit', messageId, newText),
       delete: (messageId: string) => ipcRenderer.invoke('messages:delete', messageId)

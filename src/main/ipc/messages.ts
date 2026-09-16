@@ -12,7 +12,9 @@ import { ensureDirectChat, touchChat } from '../db/repositories/chatsRepo';
 import { sendTo } from '../transport';
 import { peerFromDirectChat } from './helpers';
 import type { IpcContext } from './context';
-import type { Message } from '@shared/types';
+import type { Attachment, Message } from '@shared/types';
+import { insertAttachment } from '../db/repositories/attachmentsRepo';
+import { enqueueOutgoing } from '../transfer/manager';
 
 export function registerMessagesIpc(ctx: IpcContext): void {
   ipcMain.handle('messages:list', (_, chatId: string, limit = 200, before?: number) => {
@@ -21,7 +23,13 @@ export function registerMessagesIpc(ctx: IpcContext): void {
 
   ipcMain.handle(
     'messages:send',
-    async (_, peerId: string, text: string, replyToId: string | null) => {
+    async (
+      _,
+      peerId: string,
+      text: string,
+      replyToId: string | null,
+      attachments: Attachment[]
+    ) => {
       const self = getSelf();
       if (!self) return { success: false, error: 'Self not initialized' };
 
@@ -39,14 +47,28 @@ export function registerMessagesIpc(ctx: IpcContext): void {
         createdAt: Date.now(),
         editedAt: null,
         deletedAt: null,
-        status: 'pending'
+        status: 'pending',
+        attachments: []
       };
 
       insertMessage(message, replyToId);
+
+      // Сохраняем attachments
+      const insertedAttachments: Attachment[] = [];
+      for (const att of attachments) {
+        const full: Attachment = {
+          ...att,
+          messageId: message.id
+        };
+        insertAttachment(full);
+        insertedAttachments.push(full);
+      }
+      message.attachments = insertedAttachments;
+
       touchChat(chatId);
       ctx.notifyDataChanged();
 
-      // Отправляем в фоне — не блокируем ответ renderer'у
+      // Отправляем метаданные сообщения в фоне
       const payload = {
         ...message,
         replyTo: replyToId ? { id: replyToId } : null
@@ -57,6 +79,11 @@ export function registerMessagesIpc(ctx: IpcContext): void {
           ctx.notifyDataChanged();
         }
       });
+
+      // Ставим файлы в очередь на передачу
+      for (const att of insertedAttachments) {
+        enqueueOutgoing(peerId, att);
+      }
 
       return { success: true, message };
     }
