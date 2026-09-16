@@ -110,5 +110,13 @@ export const migrations: Migration[] = [
     ALTER TABLE users ADD COLUMN notificationSound TEXT;
     ALTER TABLE chatMembers ADD COLUMN lastReadAt INTEGER;
   `
+  },
+  {
+    id: 3,
+    name: 'notification_preferences',
+    sql: `
+    ALTER TABLE users ADD COLUMN notificationVolume REAL;
+    ALTER TABLE users ADD COLUMN notificationMono INTEGER;
+  `
   }
 ];

@@ -65,3 +65,27 @@
   color: var(--text-muted);
   font-size: 0.6rem;
 }
+
+.chat-topbar__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: var(--radius);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: default;
+  transition: background var(--transition-fast);
+}
+
+.chat-topbar__profile--clickable {
+  cursor: pointer;
+}
+
+.chat-topbar__profile--clickable:hover {
+  background: var(--bg-tertiary);
+}

@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, app } from 'electron';
+import { ipcMain, BrowserWindow, app, nativeImage } from 'electron';
 import { WebSocket } from 'ws';
 import {
   getMyInfo,
@@ -20,7 +20,9 @@ import {
   updateUserAddress,
   setContactStatus,
   removeUser,
-  setUserNotificationSound
+  setUserNotificationSound,
+  setUserNotificationMono,
+  setUserNotificationVolume
 } from './db/repositories/usersRepo';
 import {
   ensureDirectChat,
@@ -79,20 +81,67 @@ async function flushPendingForPeer(peerId: string): Promise<number> {
   return 0;
 }
 
+function getGlobalVolume(): number {
+  const raw = getSetting('sound:volume');
+  if (raw === null) return 1;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+}
+
+function getGlobalMono(): boolean {
+  return getSetting('sound:mono') === '1';
+}
+
+function resolveGlobalSound(): SoundData {
+  const name = getSetting('sound:global');
+  if (name) {
+    const dataUrl = readSoundAsDataUrl(name);
+    if (dataUrl) {
+      return { name, dataUrl, volume: getGlobalVolume(), mono: getGlobalMono() };
+    }
+    setSetting('sound:global', '');
+  }
+  return {
+    name: null,
+    dataUrl: getDefaultSoundDataUrl(),
+    volume: getGlobalVolume(),
+    mono: getGlobalMono()
+  };
+}
+
 function resolveSoundForPeer(peerId: string): SoundData {
   const user = getUser(peerId);
-  if (user?.notificationSound) {
-    const dataUrl = readSoundAsDataUrl(user.notificationSound);
-    if (dataUrl) return { name: user.notificationSound, dataUrl };
+
+  // Звук: per-peer → глобальный → дефолтный
+  let name = user?.notificationSound ?? null;
+  let dataUrl: string | null = null;
+
+  if (name) {
+    dataUrl = readSoundAsDataUrl(name);
+    if (!dataUrl) {
+      setUserNotificationSound(peerId, null);
+      name = null;
+    }
+  }
+  if (!dataUrl) {
+    const globalName = getSetting('sound:global');
+    if (globalName) {
+      dataUrl = readSoundAsDataUrl(globalName);
+      name = globalName;
+    }
+  }
+  if (!dataUrl) {
+    dataUrl = getDefaultSoundDataUrl();
+    name = null;
   }
 
-  const globalName = getSetting('sound:global');
-  if (globalName) {
-    const dataUrl = readSoundAsDataUrl(globalName);
-    if (dataUrl) return { name: globalName, dataUrl };
-  }
+  // Громкость: per-peer → глобальная
+  const volume = user?.notificationVolume != null ? user.notificationVolume : getGlobalVolume();
 
-  return { name: null, dataUrl: getDefaultSoundDataUrl() };
+  // Моно: per-peer → глобальный
+  const mono = user?.notificationMono != null ? user.notificationMono : getGlobalMono();
+
+  return { name, dataUrl, volume, mono };
 }
 
 export function initIpc(mainWindow: BrowserWindow): void {
@@ -100,7 +149,47 @@ export function initIpc(mainWindow: BrowserWindow): void {
   const send = (channel: string, ...args: unknown[]): void => {
     if (!mainWindow.isDestroyed()) mainWindow.webContents.send(channel, ...args);
   };
+  let lastHasUnread = false;
+  let overlayIcon: Electron.NativeImage | null = null;
 
+  function createDotIcon(size = 16): Electron.NativeImage {
+    const buf = Buffer.alloc(size * size * 4);
+    const center = size / 2;
+    const radius = size / 2 - 1;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const dx = x - center + 0.5;
+        const dy = y - center + 0.5;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const i = (y * size + x) * 4;
+        if (dist <= radius) {
+          buf[i] = 0xf2; // B (Windows BGRA)
+          buf[i + 1] = 0x3f; // G
+          buf[i + 2] = 0x43; // R
+          buf[i + 3] = 0xff; // A
+        } else {
+          buf[i + 3] = 0;
+        }
+      }
+    }
+    return nativeImage.createFromBuffer(buf, { width: size, height: size });
+  }
+
+  function applyBadge(): void {
+    const enabled = getSetting('taskbar:badge') !== '0';
+    const shouldShow = enabled && lastHasUnread;
+
+    if (process.platform === 'win32') {
+      if (shouldShow) {
+        if (!overlayIcon) overlayIcon = createDotIcon();
+        mainWindow.setOverlayIcon(overlayIcon, 'Непрочитанные сообщения');
+      } else {
+        mainWindow.setOverlayIcon(null, '');
+      }
+    } else {
+      app.setBadgeCount(shouldShow ? 1 : 0);
+    }
+  }
   // =========================================================================
   // Подписки транспорта
   // =========================================================================
@@ -193,6 +282,19 @@ export function initIpc(mainWindow: BrowserWindow): void {
   ipcMain.handle('transport:getMyInfo', () => getMyInfo());
   ipcMain.handle('transport:isConnectedTo', (_, peerId: string) => isConnectedTo(peerId));
   ipcMain.handle('app:getVersion', () => app.getVersion());
+  ipcMain.handle('app:setBadge', (_, hasUnread: boolean) => {
+    lastHasUnread = hasUnread;
+    applyBadge();
+    return { success: true };
+  });
+
+  ipcMain.handle('app:getBadgeEnabled', () => getSetting('taskbar:badge') !== '0');
+
+  ipcMain.handle('app:setBadgeEnabled', (_, enabled: boolean) => {
+    setSetting('taskbar:badge', enabled ? '1' : '0');
+    applyBadge();
+    return { success: true };
+  });
 
   // =========================================================================
   // Self
@@ -209,6 +311,8 @@ export function initIpc(mainWindow: BrowserWindow): void {
   // =========================================================================
   // Users
   // =========================================================================
+
+  ipcMain.handle('users:get', (_, peerId: string) => getUser(peerId));
 
   ipcMain.handle('users:list', () => {
     return listUsers().map((u) => ({ ...u, isOnline: isConnectedTo(u.peerId) }));
@@ -378,33 +482,32 @@ export function initIpc(mainWindow: BrowserWindow): void {
   // Sounds
   // =========================================================================
 
-  ipcMain.handle('sounds:getGlobal', () => {
-    const name = getSetting('sound:global');
-    if (name) {
-      const dataUrl = readSoundAsDataUrl(name);
-      if (dataUrl) return { name, dataUrl };
-      setSetting('sound:global', '');
-    }
-    return { name: null, dataUrl: getDefaultSoundDataUrl() };
-  });
+  ipcMain.handle('sounds:getGlobal', () => resolveGlobalSound());
 
   ipcMain.handle('sounds:setGlobal', (_, dataUrl: string, originalName: string) => {
     const old = getSetting('sound:global');
     const result = saveSound(dataUrl, originalName);
-    if (!result.success || !result.fileName) {
-      return { success: false, error: result.error };
-    }
+    if (!result.success || !result.fileName) return { success: false, error: result.error };
     if (old && old !== result.fileName) deleteSound(old);
-
     setSetting('sound:global', result.fileName);
-    const url = readSoundAsDataUrl(result.fileName);
-    return { success: true, sound: { name: result.fileName, dataUrl: url } as SoundData };
+    return { success: true };
   });
 
   ipcMain.handle('sounds:clearGlobal', () => {
     const old = getSetting('sound:global');
     if (old) deleteSound(old);
     setSetting('sound:global', '');
+    return { success: true };
+  });
+
+  ipcMain.handle('sounds:setGlobalVolume', (_, v: number) => {
+    const clamped = Math.max(0, Math.min(1, v));
+    setSetting('sound:volume', String(clamped));
+    return { success: true };
+  });
+
+  ipcMain.handle('sounds:setGlobalMono', (_, v: boolean) => {
+    setSetting('sound:mono', v ? '1' : '0');
     return { success: true };
   });
 
@@ -415,13 +518,9 @@ export function initIpc(mainWindow: BrowserWindow): void {
     (_, peerId: string, dataUrl: string, originalName: string) => {
       const user = getUser(peerId);
       const old = user?.notificationSound ?? null;
-
       const result = saveSound(dataUrl, originalName);
-      if (!result.success || !result.fileName) {
-        return { success: false, error: result.error };
-      }
+      if (!result.success || !result.fileName) return { success: false, error: result.error };
       if (old && old !== result.fileName) deleteSound(old);
-
       setUserNotificationSound(peerId, result.fileName);
       notifyDataChanged();
       return { success: true };
@@ -438,17 +537,16 @@ export function initIpc(mainWindow: BrowserWindow): void {
     return { success: true };
   });
 
-  ipcMain.handle('sounds:getVolume', () => {
-    const raw = getSetting('sound:volume');
-    if (raw === null) return 1;
-    const n = Number(raw);
-    return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+  ipcMain.handle('sounds:setForPeerVolume', (_, peerId: string, v: number | null) => {
+    setUserNotificationVolume(peerId, v);
+    notifyDataChanged();
+    return { success: true };
   });
 
-  ipcMain.handle('sounds:setVolume', (_, v: number) => {
-    const clamped = Math.max(0, Math.min(1, v));
-    setSetting('sound:volume', String(clamped));
-    return { success: true, volume: clamped };
+  ipcMain.handle('sounds:setForPeerMono', (_, peerId: string, v: boolean | null) => {
+    setUserNotificationMono(peerId, v);
+    notifyDataChanged();
+    return { success: true };
   });
 
   // =========================================================================

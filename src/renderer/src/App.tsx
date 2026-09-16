@@ -6,12 +6,15 @@ import { EmptyState } from '@renderer/components/EmptyState/EmptyState';
 import { Settings } from '@renderer/components/Settings/Settings';
 import { AddContactModal } from '@renderer/components/AddContactModal/AddContactModal';
 import { FriendRequestsModal } from '@renderer/components/FriendRequestsModal/FriendRequestsModal';
+import { ContactModal } from '@renderer/components/ContactModal/ContactModal';
 import { useSelf } from '@renderer/hooks/useSelf';
 import { useChats } from '@renderer/hooks/useChats';
-import './App.css';
 import { useNotifications } from './hooks/useNotifications';
+import './App.css';
+import { useTaskbarBadge } from './hooks/useTaskbarBadge';
 
 function App(): React.JSX.Element {
+  useTaskbarBadge();
   useNotifications();
   const { self, isLoading: isSelfLoading } = useSelf();
   const { chats, currentChatId } = useChats();
@@ -19,6 +22,7 @@ function App(): React.JSX.Element {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAddContactOpen, setIsAddContactOpen] = useState<boolean>(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState<boolean>(false);
+  const [contactPeerId, setContactPeerId] = useState<string | null>(null);
 
   if (isSelfLoading) {
     return (
@@ -58,13 +62,27 @@ function App(): React.JSX.Element {
         <Separator className="app-layout__resizer" />
 
         <Panel>
-          {currentChat ? <Chat key={currentChat.id} chat={currentChat} /> : <EmptyState />}
+          {currentChat ? (
+            <Chat
+              key={currentChat.id}
+              chat={currentChat}
+              onOpenContact={(peerId): void => setContactPeerId(peerId)}
+            />
+          ) : (
+            <EmptyState />
+          )}
         </Panel>
       </Group>
 
       <AddContactModal isOpen={isAddContactOpen} onClose={(): void => setIsAddContactOpen(false)} />
 
       <FriendRequestsModal isOpen={isRequestsOpen} onClose={(): void => setIsRequestsOpen(false)} />
+
+      <ContactModal
+        isOpen={contactPeerId !== null}
+        peerId={contactPeerId}
+        onClose={(): void => setContactPeerId(null)}
+      />
 
       <Settings isOpen={isSettingsOpen} onClose={(): void => setIsSettingsOpen(false)} />
     </div>

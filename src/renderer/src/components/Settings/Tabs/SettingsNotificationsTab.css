@@ -9,18 +9,18 @@
 }
 
 .settings-notifications__name {
+  overflow: hidden;
+  min-width: 0;
   color: var(--text-primary);
   font-size: 0.6rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
+  text-overflow: ellipsis;
 }
 
 .settings-notifications__actions {
   display: flex;
-  gap: 0.3rem;
   flex-shrink: 0;
+  gap: 0.3rem;
 }
 
 .settings-notifications__volume {
@@ -29,36 +29,10 @@
   gap: 0.5rem;
 }
 
-.settings-notifications__slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: var(--bg-tertiary);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.settings-notifications__slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.settings-notifications__slider::-webkit-slider-thumb:hover {
-  background: var(--accent-primary-hover);
-}
-
 .settings-notifications__volume-value {
   min-width: 3ch;
-  text-align: right;
-  font-size: 0.6rem;
   color: var(--text-secondary);
   font-family: monospace;
+  font-size: 0.6rem;
+  text-align: right;
 }

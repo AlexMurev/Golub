@@ -1,8 +1,9 @@
 import { getDb } from '../index';
 import type { ContactStatus, User } from '@shared/types';
 
-interface UserRaw extends Omit<User, 'isSelf'> {
+interface UserRaw extends Omit<User, 'isSelf' | 'notificationMono'> {
   isSelf: number;
+  notificationMono: number | null;
 }
 
 export function setUserNotificationSound(peerId: string, soundName: string | null): void {
@@ -11,9 +12,25 @@ export function setUserNotificationSound(peerId: string, soundName: string | nul
     .run(soundName, Date.now(), peerId);
 }
 
+export function setUserNotificationVolume(peerId: string, volume: number | null): void {
+  getDb()
+    .prepare('UPDATE users SET notificationVolume = ?, updatedAt = ? WHERE peerId = ?')
+    .run(volume, Date.now(), peerId);
+}
+
+export function setUserNotificationMono(peerId: string, mono: boolean | null): void {
+  getDb()
+    .prepare('UPDATE users SET notificationMono = ?, updatedAt = ? WHERE peerId = ?')
+    .run(mono === null ? null : mono ? 1 : 0, Date.now(), peerId);
+}
+
 function toUser(raw: UserRaw | undefined): User | null {
   if (!raw) return null;
-  return { ...raw, isSelf: raw.isSelf === 1 };
+  return {
+    ...raw,
+    isSelf: raw.isSelf === 1,
+    notificationMono: raw.notificationMono === null ? null : raw.notificationMono === 1
+  };
 }
 
 export function touchUserLastSeen(peerId: string): void {

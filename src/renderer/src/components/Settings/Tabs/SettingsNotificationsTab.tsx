@@ -1,17 +1,29 @@
-import React, { useRef } from 'react';
-import { useGlobalSound, useVolume } from '@renderer/utils/sounds';
+import React, { useEffect, useRef, useState } from 'react';
+import { useGlobalSound } from '@renderer/utils/sounds';
 import * as sounds from '@renderer/utils/sounds';
 import './SettingsNotificationsTab.css';
 
 export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
   const globalSound = useGlobalSound();
-  const volume = useVolume();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [badgeEnabled, setBadgeEnabled] = useState<boolean>(true);
 
   const isDefault = globalSound?.name === null;
+  const volume = globalSound?.volume ?? 1;
+  const mono = globalSound?.mono ?? false;
+
+  useEffect(() => {
+    void window.api.app
+      .getBadgeEnabled()
+      .then(setBadgeEnabled)
+      .catch((err: unknown): void => {
+        console.error('Failed to load badge setting:', err);
+      });
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -26,18 +38,20 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
       }
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  const handlePlay = (): void => {
-    if (!globalSound?.dataUrl) return;
-    const audio = new Audio(globalSound.dataUrl);
-    audio.volume = volume;
-    void audio.play();
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    void sounds.setVolume(Number(e.target.value) / 100);
+    void sounds.setGlobalVolume(Number(e.target.value) / 100);
+  };
+
+  const handleMonoChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    void sounds.setGlobalMono(e.target.checked);
+  };
+
+  const handleBadgeToggle = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const enabled = e.target.checked;
+    setBadgeEnabled(enabled);
+    void window.api.app.setBadgeEnabled(enabled);
   };
 
   return (
@@ -54,7 +68,7 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
             <button
               type="button"
               className="settings-tab__button"
-              onClick={handlePlay}
+              onClick={(): void => void sounds.previewGlobal()}
               disabled={!globalSound?.dataUrl}
             >
               Прослушать
@@ -70,9 +84,7 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
               <button
                 type="button"
                 className="settings-tab__button"
-                onClick={(): void => {
-                  void sounds.clearGlobal();
-                }}
+                onClick={(): void => void sounds.clearGlobal()}
               >
                 Сбросить
               </button>
@@ -102,16 +114,29 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
             max={100}
             value={Math.round(volume * 100)}
             onChange={handleVolumeChange}
-            className="settings-notifications__slider"
+            style={{ '--progress': `${Math.round(volume * 100)}%` } as React.CSSProperties}
           />
           <span className="settings-notifications__volume-value">{Math.round(volume * 100)}%</span>
         </div>
       </section>
 
       <section className="settings-tab__section">
-        <span className="settings-tab__label">Персональные звуки</span>
+        <label className="settings-tab__toggle">
+          <span className="settings-tab__label">Моно-звук</span>
+          <input type="checkbox" checked={mono} onChange={handleMonoChange} />
+        </label>
         <span className="settings-tab__hint">
-          Настроить отдельный звук для конкретного контакта можно будет позже.
+          Включайте, если в вашем mp3 звук слышен только в одном наушнике.
+        </span>
+      </section>
+
+      <section className="settings-tab__section">
+        <label className="settings-tab__toggle">
+          <span className="settings-tab__label">Индикатор непрочитанных в панели задач</span>
+          <input type="checkbox" checked={badgeEnabled} onChange={handleBadgeToggle} />
+        </label>
+        <span className="settings-tab__hint">
+          Показывает точку на иконке приложения, когда есть непрочитанные сообщения.
         </span>
       </section>
     </div>

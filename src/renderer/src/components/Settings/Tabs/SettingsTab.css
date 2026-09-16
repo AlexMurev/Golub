@@ -137,3 +137,12 @@
   color: var(--text-primary);
   font-family: monospace;
 }
+
+.settings-tab__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  cursor: pointer;
+}

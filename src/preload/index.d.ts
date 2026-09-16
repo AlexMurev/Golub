@@ -8,17 +8,20 @@ interface API {
   onUpdateStatus: (cb: (status: UpdateStatus) => void) => () => void;
   app: {
     getVersion: () => Promise<string>;
+    setBadge: (hasUnread: boolean) => Promise<{ success: boolean }>;
+    getBadgeEnabled: () => Promise<boolean>;
+    setBadgeEnabled: (enabled: boolean) => Promise<{ success: boolean }>;
   };
   link: {
     getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
   };
   sounds: {
     getGlobal: () => Promise<SoundData>;
-    setGlobal: (
-      dataUrl: string,
-      name: string
-    ) => Promise<{ success: boolean; sound?: SoundData; error?: string }>;
+    setGlobal: (dataUrl: string, name: string) => Promise<{ success: boolean; error?: string }>;
     clearGlobal: () => Promise<{ success: boolean }>;
+    setGlobalVolume: (v: number) => Promise<{ success: boolean }>;
+    setGlobalMono: (v: boolean) => Promise<{ success: boolean }>;
+
     getForPeer: (peerId: string) => Promise<SoundData>;
     setForPeer: (
       peerId: string,
@@ -26,8 +29,8 @@ interface API {
       name: string
     ) => Promise<{ success: boolean; error?: string }>;
     clearForPeer: (peerId: string) => Promise<{ success: boolean }>;
-    getVolume: () => Promise<number>;
-    setVolume: (v: number) => Promise<{ success: boolean; volume: number }>;
+    setForPeerVolume: (peerId: string, v: number | null) => Promise<{ success: boolean }>;
+    setForPeerMono: (peerId: string, v: boolean | null) => Promise<{ success: boolean }>;
   };
   transport: {
     getMyInfo: () => Promise<{
@@ -57,6 +60,7 @@ interface API {
       acceptRequest: (peerId: string) => Promise<{ success: boolean; contact?: User | null }>;
       rejectRequest: (peerId: string) => Promise<{ success: boolean }>;
       cancelRequest: (peerId: string) => Promise<{ success: boolean }>;
+      get: (peerId: string) => Promise<User | null>;
     };
     chats: {
       list: () => Promise<ChatListItem[]>;

@@ -10,9 +10,10 @@ import './Chat.css';
 
 interface ChatProps {
   chat: ChatListItem;
+  onOpenContact?: (peerId: string) => void;
 }
 
-const Chat: React.FC<ChatProps> = ({ chat }): React.JSX.Element => {
+const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element => {
   const { self } = useSelf();
   const {
     messages,
@@ -83,6 +84,11 @@ const Chat: React.FC<ChatProps> = ({ chat }): React.JSX.Element => {
         subtitle={subtitle}
         avatar={chat.avatar}
         isOnline={chat.type === 'direct' ? chat.isOnline : undefined}
+        onClick={
+          chat.type === 'direct' && chat.otherPeerId && onOpenContact
+            ? (): void => onOpenContact(chat.otherPeerId!)
+            : undefined
+        }
       />
 
       <ChatMessages

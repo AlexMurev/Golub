@@ -21,6 +21,8 @@ export interface User {
   createdAt: number | null;
   updatedAt: number | null;
   notificationSound: string | null;
+  notificationVolume: number | null;
+  notificationMono: boolean | null;
 }
 
 export interface Chat {
@@ -98,4 +100,6 @@ export interface Reaction {
 export interface SoundData {
   name: string | null;
   dataUrl: string | null;
+  volume: number;
+  mono: boolean;
 }

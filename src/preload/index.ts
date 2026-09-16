@@ -14,7 +14,11 @@ const api = {
     };
   },
   app: {
-    getVersion: () => ipcRenderer.invoke('app:getVersion') as Promise<string>
+    getVersion: () => ipcRenderer.invoke('app:getVersion') as Promise<string>,
+    setBadge: (hasUnread: boolean) => ipcRenderer.invoke('app:setBadge', hasUnread),
+    getBadgeEnabled: () => ipcRenderer.invoke('app:getBadgeEnabled') as Promise<boolean>,
+    setBadgeEnabled: (enabled: boolean) =>
+      ipcRenderer.invoke('app:setBadgeEnabled', enabled) as Promise<{ success: boolean }>
   },
   link: {
     getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)
@@ -24,12 +28,17 @@ const api = {
     setGlobal: (dataUrl: string, name: string) =>
       ipcRenderer.invoke('sounds:setGlobal', dataUrl, name),
     clearGlobal: () => ipcRenderer.invoke('sounds:clearGlobal'),
+    setGlobalVolume: (v: number) => ipcRenderer.invoke('sounds:setGlobalVolume', v),
+    setGlobalMono: (v: boolean) => ipcRenderer.invoke('sounds:setGlobalMono', v),
+
     getForPeer: (peerId: string) => ipcRenderer.invoke('sounds:getForPeer', peerId),
     setForPeer: (peerId: string, dataUrl: string, name: string) =>
       ipcRenderer.invoke('sounds:setForPeer', peerId, dataUrl, name),
     clearForPeer: (peerId: string) => ipcRenderer.invoke('sounds:clearForPeer', peerId),
-    getVolume: () => ipcRenderer.invoke('sounds:getVolume'),
-    setVolume: (v: number) => ipcRenderer.invoke('sounds:setVolume', v)
+    setForPeerVolume: (peerId: string, v: number | null) =>
+      ipcRenderer.invoke('sounds:setForPeerVolume', peerId, v),
+    setForPeerMono: (peerId: string, v: boolean | null) =>
+      ipcRenderer.invoke('sounds:setForPeerMono', peerId, v)
   },
   transport: {
     getMyInfo: () => ipcRenderer.invoke('transport:getMyInfo'),
@@ -88,7 +97,8 @@ const api = {
       remove: (peerId: string) => ipcRenderer.invoke('users:remove', peerId),
       acceptRequest: (peerId: string) => ipcRenderer.invoke('users:acceptRequest', peerId),
       rejectRequest: (peerId: string) => ipcRenderer.invoke('users:rejectRequest', peerId),
-      cancelRequest: (peerId: string) => ipcRenderer.invoke('users:cancelRequest', peerId)
+      cancelRequest: (peerId: string) => ipcRenderer.invoke('users:cancelRequest', peerId),
+      get: (peerId: string) => ipcRenderer.invoke('users:get', peerId)
     },
     chats: {
       list: () => ipcRenderer.invoke('chats:list'),
