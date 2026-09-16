@@ -5,6 +5,12 @@ import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
 import { useMessages } from '@renderer/hooks/useMessages';
 import { useSelf } from '@renderer/hooks/useSelf';
+import {
+  compressImage,
+  isHeavyImage,
+  getImageCompression,
+  CompressionLevel
+} from '@renderer/utils/imageCompression';
 import type { Attachment, Message, ChatListItem, ReplyPreview } from '@shared/types';
 import type { PendingAttachment } from './ChatInput/AttachmentPreview/AttachmentPreview';
 import './Chat.css';
@@ -86,45 +92,106 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     }
 
     const arr = Array.from(files).slice(0, maxNew);
+    void processFiles(arr);
+  };
 
-    arr.forEach((file, idx) => {
-      const reader = new FileReader();
-      reader.onloadend = async (): Promise<void> => {
-        if (typeof reader.result !== 'string') return;
-        const dataUrl = reader.result;
-        const base64 = dataUrl.split(',')[1];
+  const processFiles = async (files: File[]): Promise<void> => {
+    for (let idx = 0; idx < files.length; idx++) {
+      const file = files[idx];
+      const isImage = file.type.startsWith('image/');
+      const level = getImageCompression();
 
-        const saved = await window.api.files.save(base64, file.name);
-        if (!saved.success || !saved.filePath) {
-          console.error('Failed to save file:', saved.error);
-          return;
+      let fileToSave: Blob = file;
+      let nameToSave: string = file.name;
+      let previewUrl: string | null = null;
+      let width: number | null = null;
+      let height: number | null = null;
+
+      if (isImage) {
+        let effectiveLevel: CompressionLevel | undefined = undefined;
+
+        if (level === 'none' && isHeavyImage(file)) {
+          const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+          const ok = confirm(
+            `Изображение "${file.name}" весит ${sizeMb} МБ. Сжать перед отправкой?`
+          );
+          if (ok) effectiveLevel = 'medium';
+          // если не ok — effectiveLevel остаётся undefined, но level='none' → отправим оригинал
         }
 
-        const attachment: Attachment = {
-          id: crypto.randomUUID(),
-          messageId: '',
-          fileName: file.name,
-          mimeType: file.type || null,
-          size: saved.size ?? file.size,
-          filePath: saved.filePath,
-          transferState: null,
-          width: null,
-          height: null,
-          duration: null,
-          orderIndex: pendingAttachments.length + idx,
-          createdAt: Date.now(),
-          deletedAt: null
+        const result = await compressImage(file, effectiveLevel);
+        if (result) {
+          fileToSave = result.blob;
+          width = result.width;
+          height = result.height;
+          previewUrl = URL.createObjectURL(result.blob);
+
+          const willCompress = level !== 'none' || effectiveLevel !== undefined;
+          if (willCompress) {
+            const baseName = file.name.replace(/\.[^.]+$/, '');
+            nameToSave = `${baseName}.webp`;
+          }
+        }
+      }
+
+      await saveAndAdd(fileToSave, file, nameToSave, isImage, width, height, previewUrl, idx);
+    }
+  };
+
+  const saveAndAdd = async (
+    blob: Blob,
+    originalFile: File,
+    name: string,
+    isImage: boolean,
+    width: number | null,
+    height: number | null,
+    previewUrl: string | null,
+    idx: number
+  ): Promise<void> => {
+    try {
+      // Blob → data URL
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = (): void => {
+          if (typeof reader.result === 'string') resolve(reader.result);
+          else reject(new Error('Не удалось прочитать файл'));
         };
+        reader.onerror = (): void => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
 
-        const isImage = file.type.startsWith('image/');
+      const base64 = dataUrl.split(',')[1];
+      const mimeType = blob.type || originalFile.type || null;
 
-        setPendingAttachments((prev) => [
-          ...prev,
-          { attachment, previewUrl: isImage ? dataUrl : null }
-        ]);
+      const saved = await window.api.files.save(base64, name);
+      if (!saved.success || !saved.filePath) {
+        console.error('Failed to save file:', saved.error);
+        return;
+      }
+
+      const attachment: Attachment = {
+        id: crypto.randomUUID(),
+        messageId: '',
+        fileName: name,
+        mimeType,
+        size: saved.size ?? blob.size,
+        filePath: saved.filePath,
+        transferState: null,
+        width,
+        height,
+        duration: null,
+        orderIndex: pendingAttachments.length + idx,
+        createdAt: Date.now(),
+        deletedAt: null
       };
-      reader.readAsDataURL(file);
-    });
+
+      setPendingAttachments((prev) => [
+        ...prev,
+        { attachment, previewUrl: isImage ? previewUrl : null }
+      ]);
+    } catch (err) {
+      console.error('saveAndAdd error:', err);
+    }
   };
 
   const handleRemoveAttachment = (id: string): void => {

@@ -12,6 +12,7 @@ import { useChats } from '@renderer/hooks/useChats';
 import { useNotifications } from './hooks/useNotifications';
 import './App.css';
 import { useTaskbarBadge } from './hooks/useTaskbarBadge';
+import { ImageViewer } from './components/ImageViewer/ImageViewer';
 
 function App(): React.JSX.Element {
   useTaskbarBadge();
@@ -44,6 +45,8 @@ function App(): React.JSX.Element {
 
   return (
     <div className="app-layout">
+      <ImageViewer />
+
       <Group orientation="horizontal">
         <Panel
           defaultSize={300}

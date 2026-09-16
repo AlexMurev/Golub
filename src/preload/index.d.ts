@@ -11,7 +11,12 @@ interface API {
     setBadge: (hasUnread: boolean) => Promise<{ success: boolean }>;
     getBadgeEnabled: () => Promise<boolean>;
     setBadgeEnabled: (enabled: boolean) => Promise<{ success: boolean }>;
-    setFullScreen: (value: boolean) => Promise<{ success: boolean }>;
+  };
+  settings: {
+    getImageCompression: () => Promise<'none' | 'light' | 'medium' | 'strong'>;
+    setImageCompression: (
+      level: 'none' | 'light' | 'medium' | 'strong'
+    ) => Promise<{ success: boolean }>;
   };
   transfer: {
     cancel: (attachmentId: string) => Promise<{ success: boolean }>;

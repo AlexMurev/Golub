@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import type { Attachment } from '@shared/types';
+import { openImage } from '@renderer/utils/imageViewer';
 import './AttachmentCard.css';
 
 interface AttachmentCardProps {
@@ -35,32 +35,33 @@ function getFileIcon(mime: string | null): string {
   return '📎';
 }
 
+function computeImageSize(
+  w: number,
+  h: number,
+  maxW = 400,
+  maxH = 300
+): { width: number; height: number } {
+  let dw = w;
+  let dh = h;
+  if (dw > maxW) {
+    dh = dh * (maxW / dw);
+    dw = maxW;
+  }
+  if (dh > maxH) {
+    dw = dw * (maxH / dh);
+    dh = maxH;
+  }
+  return { width: Math.round(dw), height: Math.round(dh) };
+}
+
 export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, progress }) => {
   const mime = attachment.mimeType ?? '';
   const isImage = mime.startsWith('image/');
   const isVideo = mime.startsWith('video/');
   const isAudio = mime.startsWith('audio/');
 
-  const isReady = attachment.transferState === 'complete' && attachment.filePath !== null;
+  const isReady = attachment.filePath !== null;
   const fileUrl = `golub-file://${attachment.id}`;
-
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isElementFullscreen, setIsElementFullscreen] = useState<boolean>(false);
-
-  // Отслеживаем, развернут ли наш конкретный плеер на весь экран
-  useEffect(() => {
-    if (!isVideo) return;
-
-    const onFullscreenChange = (): void => {
-      // Если текущий fullscreen-элемент в DOM — это наше видео, переключаем стейт
-      setIsElementFullscreen(document.fullscreenElement === videoRef.current);
-    };
-
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-    };
-  }, [isVideo]);
 
   const pct = progress
     ? Math.min(100, Math.round((progress.transferred / progress.total) * 100))
@@ -102,36 +103,34 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, prog
   // Картинка
   // ----------------------------------------------------------------
   if (isImage) {
+    const hasDims = attachment.width !== null && attachment.height !== null;
+    const size = hasDims ? computeImageSize(attachment.width!, attachment.height!) : null;
+
     return (
       <button
         type="button"
         className="attachment-card attachment-card--image"
-        onClick={handleOpen}
+        onClick={(): void => openImage(attachment)}
         title={attachment.fileName ?? ''}
+        style={size ? { width: size.width, height: size.height } : undefined}
       >
-        <img src={fileUrl} alt={attachment.fileName ?? ''} className="attachment-card__image" />
+        <img
+          src={fileUrl}
+          alt={attachment.fileName ?? ''}
+          className="attachment-card__image"
+          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+        />
       </button>
     );
   }
 
   // ----------------------------------------------------------------
-  // Видео (Исправлено с использованием Портала)
+  // Видео
   // ----------------------------------------------------------------
   if (isVideo) {
-    const videoElement = (
-      <video
-        ref={videoRef}
-        src={fileUrl}
-        controls
-        preload="metadata"
-        className={`attachment-card__video ${isElementFullscreen ? 'video-portal-fullscreen' : ''}`}
-      />
-    );
-
     return (
       <div className="attachment-card attachment-card--video">
-        {/* Когда видео уходит в фулскрин, телепортируем его в body, чтобы уберечь от ререндеров списка */}
-        {isElementFullscreen ? createPortal(videoElement, document.body) : videoElement}
+        <video src={fileUrl} controls preload="metadata" className="attachment-card__video" />
         <div className="attachment-card__video-footer">
           <span className="attachment-card__name">{attachment.fileName ?? 'Видео'}</span>
           <span className="attachment-card__size">

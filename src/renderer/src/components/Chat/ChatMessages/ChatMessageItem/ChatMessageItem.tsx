@@ -5,8 +5,8 @@ import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
 import ReplyIcon from '@renderer/assets/reply.svg?react';
 import { MessageText } from './MessageText';
 import { LinkPreview } from './LinkPreview';
-import './ChatMessageItem.css';
 import { AttachmentCard } from './AttachmentCard/AttachmentCard';
+import './ChatMessageItem.css';
 
 interface ChatMessageItemProps {
   msg: Message;
@@ -45,14 +45,11 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
     const [prevIsEditing, setPrevIsEditing] = useState<boolean>(isEditing);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-    // Сброс текста при входе в режим редактирования — во время рендера,
-    // чтобы не ловить каскадный ререндер через useEffect.
     if (isEditing !== prevIsEditing) {
       setPrevIsEditing(isEditing);
       if (isEditing) setEditText(msg.text);
     }
 
-    // Автофокус и авторазмер при входе в режим редактирования.
     useEffect(() => {
       if (!isEditing) return;
       const el = textareaRef.current;
@@ -82,7 +79,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const trimmed: string = editText.trim();
-        if (trimmed && trimmed !== msg.text) {
+        if (trimmed !== msg.text) {
           onSubmitEdit(msg.id, trimmed);
         } else {
           onCancelEdit();
@@ -163,24 +160,24 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
               <span className="message__edit-hint">escape — отмена • enter — сохранить</span>
             </div>
           ) : (
-            <>
-              <MessageText text={msg.text} />
-              {msg.attachments.length > 0 && (
-                <div className="message__attachments">
-                  {msg.attachments.map((att) => (
-                    <AttachmentCard key={att.id} attachment={att} />
-                  ))}
-                </div>
-              )}
-              {isVideo && firstUrl && (
-                <div className="message__video">
-                  <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
-                </div>
-              )}
-
-              {!isVideo && firstUrl && <LinkPreview url={firstUrl} />}
-            </>
+            msg.text && <MessageText text={msg.text} />
           )}
+
+          {msg.attachments.length > 0 && (
+            <div className="message__attachments">
+              {msg.attachments.map((att) => (
+                <AttachmentCard key={att.id} attachment={att} />
+              ))}
+            </div>
+          )}
+
+          {!isEditing && isVideo && firstUrl && (
+            <div className="message__video">
+              <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
+            </div>
+          )}
+
+          {!isEditing && !isVideo && firstUrl && <LinkPreview url={firstUrl} />}
         </div>
       </div>
     );

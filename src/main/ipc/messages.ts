@@ -98,18 +98,18 @@ export function registerMessagesIpc(ctx: IpcContext): void {
     if (msg.senderId !== self.peerId) return { success: false, error: 'Не ваше сообщение' };
 
     editMessage(messageId, newText);
-    const updated = getMessage(messageId);
+    ctx.notifyDataChanged();
 
+    const updated = getMessage(messageId);
     if (updated?.editedAt) {
       const peerId = peerFromDirectChat(msg.chatId, self.peerId);
       if (peerId) {
-        await sendTo(peerId, {
+        void sendTo(peerId, {
           type: 'edit-message',
           payload: { id: messageId, text: newText, editedAt: updated.editedAt }
         });
       }
     }
-    ctx.notifyDataChanged();
 
     return { success: true };
   });
@@ -123,12 +123,12 @@ export function registerMessagesIpc(ctx: IpcContext): void {
     if (msg.senderId !== self.peerId) return { success: false, error: 'Не ваше сообщение' };
 
     softDeleteMessage(messageId);
+    ctx.notifyDataChanged();
 
     const peerId = peerFromDirectChat(msg.chatId, self.peerId);
     if (peerId) {
-      await sendTo(peerId, { type: 'delete-message', payload: { id: messageId } });
+      void sendTo(peerId, { type: 'delete-message', payload: { id: messageId } });
     }
-    ctx.notifyDataChanged();
 
     return { success: true };
   });

@@ -18,8 +18,12 @@ const api = {
     setBadge: (hasUnread: boolean) => ipcRenderer.invoke('app:setBadge', hasUnread),
     getBadgeEnabled: () => ipcRenderer.invoke('app:getBadgeEnabled') as Promise<boolean>,
     setBadgeEnabled: (enabled: boolean) =>
-      ipcRenderer.invoke('app:setBadgeEnabled', enabled) as Promise<{ success: boolean }>,
-    setFullScreen: (value: boolean) => ipcRenderer.invoke('app:setFullScreen', value)
+      ipcRenderer.invoke('app:setBadgeEnabled', enabled) as Promise<{ success: boolean }>
+  },
+  settings: {
+    getImageCompression: () => ipcRenderer.invoke('settings:getImageCompression'),
+    setImageCompression: (level: string) =>
+      ipcRenderer.invoke('settings:setImageCompression', level)
   },
   transfer: {
     cancel: (attachmentId: string) => ipcRenderer.invoke('transfer:cancel', attachmentId),

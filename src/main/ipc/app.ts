@@ -82,8 +82,12 @@ export function registerAppIpc(ctx: IpcContext): void {
     return { success: true };
   });
 
-  ipcMain.handle('app:setFullScreen', (_, value: boolean) => {
-    ctx.mainWindow.setFullScreen(value);
+  ipcMain.handle('settings:getImageCompression', () => {
+    return getSetting('images:compression') ?? 'medium';
+  });
+
+  ipcMain.handle('settings:setImageCompression', (_, level: string) => {
+    setSetting('images:compression', level);
     return { success: true };
   });
 }

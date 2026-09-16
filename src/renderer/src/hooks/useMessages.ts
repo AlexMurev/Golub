@@ -30,9 +30,10 @@ export function useMessages(chatId: string | null, selfPeerId: string | null): U
       const data = await window.api.db.messages.list(chatId, PAGE_SIZE);
       setMessages((prev) => {
         if (data.length === 0) return prev;
-        const newestCreatedAt = data[0].createdAt;
-        // Оставляем всё, что старше свежей страницы, и пришиваем свежую страницу
-        const older = prev.filter((m) => m.createdAt < newestCreatedAt);
+        const oldestNew = data[0].createdAt;
+        // Оставляем только то, что старше новой порции — она перезапишет всё,
+        // что попадает в её диапазон (включая удалённые сообщения).
+        const older = prev.filter((m) => m.createdAt < oldestNew);
         return [...older, ...data];
       });
       setMessagesChatId(chatId);

@@ -1,4 +1,6 @@
+/* ---------- Базовая карточка ---------- */
 .attachment-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -18,19 +20,54 @@
   background: var(--bg-elevated);
 }
 
+/* ---------- Картинка ---------- */
 .attachment-card--image {
+  display: block;
   padding: 0;
   overflow: hidden;
-  max-width: 400px;
+  background: transparent;
+  max-width: 100%;
+  border-radius: var(--radius);
+  line-height: 0;
+}
+
+.attachment-card--image:hover {
+  background: transparent;
 }
 
 .attachment-card__image {
   display: block;
-  max-width: 100%;
-  max-height: 300px;
-  object-fit: contain;
 }
 
+/* ---------- Заглушка (не готово) ---------- */
+.attachment-card--loading {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.attachment-card--loading:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ---------- Прогресс ---------- */
+.attachment-card__progress-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--bg-deep);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+
+.attachment-card__progress-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  transition: width 0.15s linear;
+}
+
+/* ---------- Иконка и текст ---------- */
 .attachment-card__icon {
   font-size: 1.4rem;
   flex-shrink: 0;
@@ -57,42 +94,13 @@
   color: var(--text-muted);
 }
 
-/* Контейнер для нескольких карточек */
+/* ---------- Контейнер сообщения ---------- */
 .message__attachments {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 6px;
-}
-
-.attachment-card--loading {
-  cursor: default;
-  opacity: 0.9;
-}
-
-.attachment-card--loading:hover {
-  background: var(--bg-tertiary);
-}
-
-.attachment-card__progress-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: var(--bg-deep);
-  border-radius: 0 0 var(--radius) var(--radius);
-  overflow: hidden;
-}
-
-.attachment-card__progress-fill {
-  height: 100%;
-  background: var(--accent-primary);
-  transition: width 0.15s linear;
-}
-
-.attachment-card {
-  position: relative; /* для absolute progress-bar */
+  align-items: flex-start;
 }
 
 /* ---------- Видео ---------- */
@@ -108,6 +116,13 @@
 
 .attachment-card--video:hover {
   background: var(--bg-deep);
+}
+
+.attachment-card__video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  background: #000;
 }
 
 .attachment-card__video-footer {
@@ -150,7 +165,7 @@
   height: 32px;
 }
 
-/* ---------- Обычный файл с кнопками ---------- */
+/* ---------- Обычный файл ---------- */
 .attachment-card--file {
   display: flex;
   align-items: center;
@@ -196,38 +211,12 @@
   font-size: 1rem;
   cursor: pointer;
   border-radius: var(--radius);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .attachment-card__save:hover {
   background: var(--bg-elevated);
   color: var(--text-primary);
-}
-
-.attachment-card__expand {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: var(--radius);
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.attachment-card__expand:hover {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.attachment-card__meta {
-  font-size: 0.55rem;
-  color: var(--text-muted);
-  margin-left: auto;
-  margin-right: 6px;
 }
