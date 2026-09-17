@@ -111,7 +111,11 @@ export function registerTransportIpc(ctx: IpcContext): void {
       ctx.send('transport:message', from, payload);
       return;
     }
-
+    if (p.type === 'typing' && p.payload) {
+      const { isTyping } = p.payload as { isTyping: boolean };
+      ctx.send('transport:typing', from, isTyping);
+      return;
+    }
     if (p.type === 'message' && p.payload) {
       const incoming = p.payload as Message;
       ensureUser(incoming.senderId, incoming.senderNickname, incoming.senderAvatar);
@@ -180,4 +184,14 @@ export function registerTransportIpc(ctx: IpcContext): void {
 
   ipcMain.handle('transport:getMyInfo', () => getMyInfo());
   ipcMain.handle('transport:isConnectedTo', (_, peerId: string) => isConnectedTo(peerId));
+  ipcMain.handle('transport:sendTyping', async (_, peerId: string, isTyping: boolean) => {
+    const self = getSelf();
+    if (!self) return { success: false };
+
+    const hide = getSetting('privacy:hideTyping') === '1';
+    if (hide && isTyping) return { success: true, skipped: true };
+
+    await sendTo(peerId, { type: 'typing', payload: { isTyping } });
+    return { success: true };
+  });
 }

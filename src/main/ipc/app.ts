@@ -111,4 +111,13 @@ export function registerAppIpc(ctx: IpcContext): void {
     setSetting('privacy:readReceipts', value);
     return { success: true };
   });
+
+  ipcMain.handle('privacy:getHideTyping', () => {
+    return getSetting('privacy:hideTyping') === '1';
+  });
+
+  ipcMain.handle('privacy:setHideTyping', (_, value: boolean) => {
+    setSetting('privacy:hideTyping', value ? '1' : '0');
+    return { success: true };
+  });
 }

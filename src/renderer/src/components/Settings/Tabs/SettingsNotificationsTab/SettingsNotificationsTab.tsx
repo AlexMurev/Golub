@@ -68,6 +68,18 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
     void window.api.privacy.setReadReceipts(value);
   };
 
+  const [hideTyping, setHideTyping] = useState<boolean>(false);
+
+  useEffect(() => {
+    void window.api.privacy.getHideTyping().then(setHideTyping);
+  }, []);
+
+  const handleHideTypingToggle = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.checked;
+    setHideTyping(value);
+    void window.api.privacy.setHideTyping(value);
+  };
+
   return (
     <div className="settings-tab">
       <section className="settings-tab__section">
@@ -141,6 +153,17 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
         </label>
         <span className="settings-tab__hint">
           Включайте, если в вашем mp3 звук слышен только в одном наушнике.
+        </span>
+      </section>
+
+      <section className="settings-tab__section">
+        <label className="settings-tab__toggle">
+          <span className="settings-tab__label">Скрывать статус «печатает…»</span>
+          <input type="checkbox" checked={hideTyping} onChange={handleHideTypingToggle} />
+        </label>
+        <span className="settings-tab__hint">
+          Если включено, собеседник не будет видеть, что вы набираете сообщение. Чужой статус
+          «печатает…» всё равно отображается.
         </span>
       </section>
 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChatMessages } from './ChatMessages/ChatMessages';
 import { ChatReplyPreview } from './ChatReplyPreview/ChatReplyPreview';
 import { ChatInput } from './ChatInput/ChatInput';
 import { ChatTopBar } from './ChatTopBar/ChatTopBar';
+import { TypingIndicator } from './TypingIndicator/TypingIndicator';
 import { useMessages } from '@renderer/hooks/useMessages';
 import { useSelf } from '@renderer/hooks/useSelf';
 import {
@@ -39,6 +40,97 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
 
+  // ==========================================================================
+  // Измерение высоты нижней панели — чтобы сообщения не «ныряли» под неё
+  // ==========================================================================
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [bottomInset, setBottomInset] = useState<number>(0);
+
+  useEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+
+    const update = (): void => setBottomInset(el.offsetHeight);
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return (): void => ro.disconnect();
+  }, []);
+
+  // ==========================================================================
+  // Typing indicator
+  // ==========================================================================
+
+  const [isPeerTyping, setIsPeerTyping] = useState<boolean>(false);
+  const [prevChatId, setPrevChatId] = useState<string>(chat.id);
+  const typingResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  if (chat.id !== prevChatId) {
+    setPrevChatId(chat.id);
+    setIsPeerTyping(false);
+  }
+
+  const peerId: string | null =
+    chat.type === 'direct' && chat.otherPeerId ? chat.otherPeerId : null;
+
+  useEffect(() => {
+    if (!peerId) return;
+
+    const unsub = window.api.transport.onTyping((from, isTyping): void => {
+      if (from !== peerId) return;
+
+      setIsPeerTyping(isTyping);
+
+      if (typingResetTimerRef.current) {
+        clearTimeout(typingResetTimerRef.current);
+        typingResetTimerRef.current = null;
+      }
+
+      if (isTyping) {
+        typingResetTimerRef.current = setTimeout((): void => setIsPeerTyping(false), 5000);
+      }
+    });
+
+    return (): void => {
+      unsub();
+      if (typingResetTimerRef.current) {
+        clearTimeout(typingResetTimerRef.current);
+        typingResetTimerRef.current = null;
+      }
+    };
+  }, [peerId]);
+
+  const typingSentAtRef = useRef<number>(0);
+  const typingStopTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const notifyTyping = useCallback((): void => {
+    if (!peerId) return;
+
+    const now = Date.now();
+    if (now - typingSentAtRef.current > 2000) {
+      typingSentAtRef.current = now;
+      void window.api.transport.sendTyping(peerId, true);
+    }
+
+    if (typingStopTimerRef.current) clearTimeout(typingStopTimerRef.current);
+    typingStopTimerRef.current = setTimeout((): void => {
+      typingSentAtRef.current = 0;
+      void window.api.transport.sendTyping(peerId, false);
+    }, 3000);
+  }, [peerId]);
+
+  useEffect(() => {
+    return (): void => {
+      if (typingStopTimerRef.current) clearTimeout(typingStopTimerRef.current);
+    };
+  }, []);
+
+  // ==========================================================================
+  // Отправка / редактирование / ответы
+  // ==========================================================================
+
   const handleSend = async (): Promise<void> => {
     if (!input.trim() && pendingAttachments.length === 0) return;
     const attachments: Attachment[] = pendingAttachments.map((p) => p.attachment);
@@ -46,6 +138,12 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     setReplyTo(null);
     setInput('');
     setPendingAttachments([]);
+
+    if (typingStopTimerRef.current) clearTimeout(typingStopTimerRef.current);
+    if (peerId) {
+      typingSentAtRef.current = 0;
+      void window.api.transport.sendTyping(peerId, false);
+    }
   };
 
   const handleStartEdit = (id: string): void => {
@@ -84,6 +182,17 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     setReplyTo(null);
   };
 
+  const handleInputChange = (value: string): void => {
+    setInput(value);
+    if (value.trim().length > 0) {
+      notifyTyping();
+    }
+  };
+
+  // ==========================================================================
+  // Вложения
+  // ==========================================================================
+
   const handleAddAttachments = (files: FileList): void => {
     const maxNew = 10 - pendingAttachments.length;
     if (maxNew <= 0) {
@@ -116,7 +225,6 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
             `Изображение "${file.name}" весит ${sizeMb} МБ. Сжать перед отправкой?`
           );
           if (ok) effectiveLevel = 'medium';
-          // если не ok — effectiveLevel остаётся undefined, но level='none' → отправим оригинал
         }
 
         const result = await compressImage(file, effectiveLevel);
@@ -149,7 +257,6 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     idx: number
   ): Promise<void> => {
     try {
-      // Blob → data URL
       const dataUrl: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = (): void => {
@@ -182,7 +289,8 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         duration: null,
         orderIndex: pendingAttachments.length + idx,
         createdAt: Date.now(),
-        deletedAt: null
+        deletedAt: null,
+        fileDeletedAt: null
       };
 
       setPendingAttachments((prev) => [
@@ -224,6 +332,7 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         hasMore={hasMore}
         isLoadingOlder={isLoadingOlder}
         editingId={editingId}
+        bottomInset={bottomInset}
         onLoadOlder={loadOlder}
         onReply={handleReply}
         onStartEdit={handleStartEdit}
@@ -232,18 +341,22 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         onDelete={deleteMessage}
       />
 
-      {replyTo && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
+      <div className="chat__bottom" ref={bottomRef}>
+        {chat.type === 'direct' && <TypingIndicator visible={isPeerTyping} />}
 
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        sendMessage={handleSend}
-        isConnected={true}
-        hasReply={!!replyTo}
-        attachments={pendingAttachments}
-        onAddAttachments={handleAddAttachments}
-        onRemoveAttachment={handleRemoveAttachment}
-      />
+        {replyTo && <ChatReplyPreview replyTo={replyTo} onCancel={cancelReply} />}
+
+        <ChatInput
+          input={input}
+          setInput={handleInputChange}
+          sendMessage={handleSend}
+          isConnected={true}
+          hasReply={!!replyTo}
+          attachments={pendingAttachments}
+          onAddAttachments={handleAddAttachments}
+          onRemoveAttachment={handleRemoveAttachment}
+        />
+      </div>
     </div>
   );
 };

@@ -27,7 +27,9 @@ const api = {
   },
   privacy: {
     getReadReceipts: () => ipcRenderer.invoke('privacy:getReadReceipts'),
-    setReadReceipts: (value: string) => ipcRenderer.invoke('privacy:setReadReceipts', value)
+    setReadReceipts: (value: string) => ipcRenderer.invoke('privacy:setReadReceipts', value),
+    getHideTyping: () => ipcRenderer.invoke('privacy:getHideTyping') as Promise<boolean>,
+    setHideTyping: (value: boolean) => ipcRenderer.invoke('privacy:setHideTyping', value)
   },
   transfer: {
     cancel: (attachmentId: string) => ipcRenderer.invoke('transfer:cancel', attachmentId),
@@ -128,6 +130,16 @@ const api = {
       ipcRenderer.on('transport:peerUpdated', listener);
       return (): void => {
         ipcRenderer.removeListener('transport:peerUpdated', listener);
+      };
+    },
+    sendTyping: (peerId: string, isTyping: boolean) =>
+      ipcRenderer.invoke('transport:sendTyping', peerId, isTyping),
+    onTyping: (cb: (peerId: string, isTyping: boolean) => void) => {
+      const listener = (_e: unknown, peerId: string, isTyping: boolean): void =>
+        cb(peerId, isTyping);
+      ipcRenderer.on('transport:typing', listener);
+      return (): void => {
+        ipcRenderer.removeListener('transport:typing', listener);
       };
     }
   },

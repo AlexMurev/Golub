@@ -1,12 +1,35 @@
 .chat {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 8px 8px;
   background: var(--bg-secondary);
   overflow: hidden;
 }
 
+/* ---------- Нижняя панель поверх сообщений ---------- */
+.chat__bottom {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 8px 8px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--bg-secondary) 32px
+  );
+  pointer-events: none;
+}
+
+.chat__bottom > * {
+  pointer-events: auto;
+}
+
+/* ---------- Видео-лайтбокс ---------- */
 .video-lightbox {
   position: fixed;
   inset: 0;
@@ -19,8 +42,12 @@
 }
 
 @keyframes video-lightbox-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .video-lightbox__video {
@@ -33,15 +60,15 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 40px;
   background: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: 50%;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.2rem;
   cursor: pointer;
   transition: background var(--transition-fast);
@@ -49,4 +76,28 @@
 
 .video-lightbox__close:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Сообщения ---------- */
+.chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px 0 0;
+  overflow: hidden;
+}
+
+.chat-messages__list {
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-tertiary) transparent;
+}
+
+.chat-messages__loader {
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 0.5rem;
+  text-align: center;
 }

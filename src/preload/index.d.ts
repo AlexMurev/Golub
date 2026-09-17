@@ -21,6 +21,8 @@ interface API {
   privacy: {
     getReadReceipts: () => Promise<'immediate' | 'on-reply'>;
     setReadReceipts: (value: 'immediate' | 'on-reply') => Promise<{ success: boolean }>;
+    getHideTyping: () => Promise<boolean>;
+    setHideTyping: (value: boolean) => Promise<{ success: boolean }>;
   };
   transfer: {
     cancel: (attachmentId: string) => Promise<{ success: boolean }>;
@@ -99,6 +101,11 @@ interface API {
     onNewPeer: (cb: (peerId: string) => void) => () => void;
     onPeerUpdated: (cb: (peerId: string) => void) => () => void;
     onDataChanged: (cb: () => void) => () => void;
+    sendTyping: (
+      peerId: string,
+      isTyping: boolean
+    ) => Promise<{ success: boolean; skipped?: boolean }>;
+    onTyping: (cb: (peerId: string, isTyping: boolean) => void) => () => void;
   };
 
   db: {

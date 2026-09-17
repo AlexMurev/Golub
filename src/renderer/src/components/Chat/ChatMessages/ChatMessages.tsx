@@ -10,6 +10,9 @@ import EditIcon from '@renderer/assets/edit.svg?react';
 import DeleteIcon from '@renderer/assets/delete.svg?react';
 import './ChatMessages.css';
 
+// Дополнительный зазор между последним сообщением и нижней панелью.
+const BOTTOM_GAP = 0;
+
 interface ChatMessagesProps {
   chatId: string | null;
   messages: Message[];
@@ -19,6 +22,7 @@ interface ChatMessagesProps {
   hasMore: boolean;
   isLoadingOlder: boolean;
   editingId: string | null;
+  bottomInset: number;
   onLoadOlder: () => void;
   onReply: (message: Message) => void;
   onStartEdit: (id: string) => void;
@@ -36,6 +40,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   hasMore,
   isLoadingOlder,
   editingId,
+  bottomInset,
   onLoadOlder,
   onReply,
   onStartEdit,
@@ -94,6 +99,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     return actions;
   };
 
+  const components = useMemo(
+    () => ({
+      Header: (): React.JSX.Element | null =>
+        isLoadingOlder ? <div className="chat-messages__loader">Загрузка истории...</div> : null,
+      Footer: (): React.JSX.Element => (
+        <div style={{ height: bottomInset + BOTTOM_GAP }} aria-hidden="true" />
+      )
+    }),
+    [isLoadingOlder, bottomInset]
+  );
+
   if (isLoading || visible.length === 0) {
     return (
       <div className="chat-messages">
@@ -139,10 +155,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             />
           );
         }}
-        components={{
-          Header: (): React.JSX.Element | null =>
-            isLoadingOlder ? <div className="chat-messages__loader">Загрузка истории...</div> : null
-        }}
+        components={components}
         increaseViewportBy={{ top: 600, bottom: 200 }}
         atBottomThreshold={50}
         className="chat-messages__list"
