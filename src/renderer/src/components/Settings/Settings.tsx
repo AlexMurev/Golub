@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Modal } from '@renderer/components/Modal/Modal';
 import { ModalHeader } from '@renderer/components/Modal/ModalHeader';
-import { SettingsProfileTab } from './Tabs/SettingsProfileTab';
-import { SettingsNotificationsTab } from './Tabs/SettingsNotificationsTab';
+import { SettingsProfileTab } from './Tabs/SettingsProfileTab/SettingsProfileTab';
+import { SettingsNotificationsTab } from './Tabs/SettingsNotificationsTab/SettingsNotificationsTab';
+import { SettingsStorageTab } from './Tabs/SettingsStorageTab/SettingsStorageTab';
 import { SettingsAppTab } from './Tabs/SettingsAppTab';
 import './Tabs/SettingsTab.css';
 import './Settings.css';
 import AppIcon from '@renderer/assets/app.svg?react';
 import UserIcon from '@renderer/assets/user.svg?react';
 import NotificationIcon from '@renderer/assets/notification.svg?react';
+import StorageIcon from '@renderer/assets/storage.svg?react';
 
-type SettingsTabId = 'profile' | 'notifications' | 'app';
+type SettingsTabId = 'profile' | 'notifications' | 'storage' | 'app';
 
 interface SettingsTab {
   id: SettingsTabId;
@@ -21,6 +23,7 @@ interface SettingsTab {
 const TABS: SettingsTab[] = [
   { id: 'profile', label: 'Профиль', icon: <UserIcon height={25} width={25} /> },
   { id: 'notifications', label: 'Уведомления', icon: <NotificationIcon height={25} width={25} /> },
+  { id: 'storage', label: 'Хранилище', icon: <StorageIcon height={25} width={25} /> },
   { id: 'app', label: 'Приложение', icon: <AppIcon height={25} width={25} /> }
 ];
 
@@ -66,6 +69,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <div className="settings__content">
             {tab === 'profile' && <SettingsProfileTab />}
             {tab === 'notifications' && <SettingsNotificationsTab />}
+            {tab === 'storage' && <SettingsStorageTab />}
             {tab === 'app' && <SettingsAppTab />}
           </div>
         </div>

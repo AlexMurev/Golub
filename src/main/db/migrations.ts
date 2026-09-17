@@ -129,5 +129,10 @@ export const migrations: Migration[] = [
     ALTER TABLE attachments ADD COLUMN duration REAL;
     ALTER TABLE attachments ADD COLUMN orderIndex INTEGER NOT NULL DEFAULT 0;
   `
+  },
+  {
+    id: 5,
+    name: 'attachment_file_deleted_at',
+    sql: `ALTER TABLE attachments ADD COLUMN fileDeletedAt INTEGER;`
   }
 ];

@@ -46,6 +46,20 @@ interface API {
     open: (attachmentId: string) => Promise<{ success: boolean; error?: string }>;
     saveAs: (attachmentId: string) => Promise<{ success: boolean; error?: string }>;
     delete: (attachmentId: string) => Promise<{ success: boolean }>;
+    cleanupGetSettings: () => Promise<{
+      enabled: boolean;
+      byAge: { enabled: boolean; days: number };
+      bySize: { enabled: boolean; maxGb: number; targetGb: number };
+      byCount: { enabled: boolean; maxCount: number; targetCount: number };
+    }>;
+    cleanupSetSettings: (settings: {
+      enabled: boolean;
+      byAge: { enabled: boolean; days: number };
+      bySize: { enabled: boolean; maxGb: number; targetGb: number };
+      byCount: { enabled: boolean; maxCount: number; targetCount: number };
+    }) => Promise<{ success: boolean }>;
+    cleanupRun: () => Promise<{ filesDeleted: number; bytesFreed: number }>;
+    cleanupStats: () => Promise<{ count: number; totalSize: number }>;
   };
   link: {
     getPreview: (url: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;

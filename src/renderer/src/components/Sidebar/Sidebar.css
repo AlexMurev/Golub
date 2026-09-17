@@ -7,6 +7,7 @@
   overflow: hidden;
 }
 
+/* ---------- Шапка ---------- */
 .sidebar__header {
   display: flex;
   flex-shrink: 0;
@@ -67,13 +68,14 @@
   height: 16px;
   padding: 0 4px;
   background: var(--accent-danger);
-  border-radius: var(--radius);
+  border-radius: 100px;
   color: var(--text-primary);
   font-size: 0.5rem;
   font-weight: 700;
   line-height: 1;
 }
 
+/* ---------- Список ---------- */
 .sidebar__list {
   flex: 1;
   min-height: 0;
@@ -95,6 +97,7 @@
   text-align: center;
 }
 
+/* ---------- Элемент списка ---------- */
 .sidebar__item {
   display: flex;
   align-items: center;
@@ -125,7 +128,9 @@
   outline-offset: -2px;
 }
 
+/* ---------- Аватар со статусом ---------- */
 .sidebar__item-avatar-wrapper {
+  position: relative;
   flex-shrink: 0;
 }
 
@@ -147,6 +152,27 @@
   font-weight: 700;
 }
 
+.sidebar__item-status-dot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--text-muted);
+  border: 2px solid var(--bg-primary);
+  border-radius: 50%;
+}
+
+.sidebar__item-status-dot--online {
+  background: var(--accent-success);
+}
+
+/* Активный чат — фон темнее, рамка статуса тоже */
+.sidebar__item--active .sidebar__item-status-dot {
+  border-color: var(--bg-elevated);
+}
+
+/* ---------- Текстовая часть ---------- */
 .sidebar__item-content {
   display: flex;
   flex: 1;
@@ -177,8 +203,17 @@
   font-size: 0.65rem;
 }
 
+.sidebar__item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
 .sidebar__item-preview {
   overflow: hidden;
+  min-width: 0;
   color: var(--text-secondary);
   font-size: 0.65rem;
   white-space: nowrap;
@@ -186,17 +221,15 @@
 }
 
 .sidebar__item-unread {
-  flex-shrink: 0;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  background: var(--accent-success);
+  padding: 5px;
+  background: var(--accent-primary);
+  border-radius: 100px;
   color: var(--text-primary);
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  border-radius: 9px;
   line-height: 1;
 }

@@ -48,20 +48,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           chats.map((chat) => {
             const avatarPlaceholder: string = chat.title.charAt(0).toUpperCase() || '?';
-
-            const previewText: string = ((): string => {
-              if (!chat.lastMessage) return 'Нет сообщений';
-              const prefix: string =
-                chat.type === 'group' ? `${chat.lastMessage.senderNickname}: ` : '';
-              const text: string = chat.lastMessage.text || '[вложение]';
-              return `${prefix}${text}`;
-            })();
-
-            const timeText: string = chat.lastMessage
-              ? formatShortTime(chat.lastMessage.createdAt)
-              : '';
-
             const isActive: boolean = chat.id === currentChatId;
+            const isDirect: boolean = chat.type === 'direct';
+            const isOnline: boolean | undefined = isDirect ? chat.isOnline : undefined;
+
+            const lastMessage = chat.lastMessage;
+            const previewText: string = lastMessage
+              ? `${chat.type === 'group' ? `${lastMessage.senderNickname}: ` : ''}${lastMessage.text || '[вложение]'}`
+              : 'Нет сообщений';
+
+            const timeText: string = lastMessage ? formatShortTime(lastMessage.createdAt) : '';
 
             return (
               <button
@@ -78,18 +74,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       {avatarPlaceholder}
                     </div>
                   )}
+                  {isOnline !== undefined && (
+                    <span
+                      className={`sidebar__item-status-dot ${isOnline ? 'sidebar__item-status-dot--online' : ''}`}
+                    />
+                  )}
                 </div>
 
                 <div className="sidebar__item-content">
                   <div className="sidebar__item-top">
                     <span className="sidebar__item-title">{chat.title}</span>
-                    {chat.unreadCount > 0 ? (
+                    {timeText && <span className="sidebar__item-time">{timeText}</span>}
+                  </div>
+                  <div className="sidebar__item-bottom">
+                    <span className="sidebar__item-preview">{previewText}</span>
+                    {chat.unreadCount > 0 && (
                       <span className="sidebar__item-unread">{chat.unreadCount}</span>
-                    ) : (
-                      timeText && <span className="sidebar__item-time">{timeText}</span>
                     )}
                   </div>
-                  <div className="sidebar__item-preview">{previewText}</div>
                 </div>
               </button>
             );

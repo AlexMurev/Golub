@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ReplyPreview } from '@shared/types';
 import './ChatReplyPreview.css';
+import CloseIcon from '@renderer/assets/close.svg?react';
 
 interface ChatReplyPreviewProps {
   replyTo: ReplyPreview;
@@ -17,7 +18,7 @@ export const ChatReplyPreview: React.FC<ChatReplyPreviewProps> = ({ replyTo, onC
         </span>
       </div>
       <button className="chat-reply-preview__cancel" onClick={onCancel} title="Отменить ответ">
-        ✕
+        <CloseIcon width={25} height={25} />
       </button>
     </div>
   );

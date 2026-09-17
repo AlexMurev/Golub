@@ -1,0 +1,134 @@
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+/* ---------- Подпись: имя + размер ---------- */
+.audio-player__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.5rem;
+}
+
+.audio-player__name {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.audio-player__size {
+  flex-shrink: 0;
+}
+
+.audio-player__size::before {
+  content: '•';
+  margin-right: 6px;
+}
+
+/* ---------- Основной ряд: play + волна/метаданные ---------- */
+.audio-player__main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio-player__play {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.audio-player__play:hover {
+  background: var(--accent-primary-hover);
+}
+
+.audio-player__play:active {
+  transform: scale(0.95);
+}
+
+.audio-player__play:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Правая колонка: волна + метаданные ---------- */
+.audio-player__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.audio-player__waveform {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.audio-player__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.audio-player__time {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-family: monospace;
+  font-size: 0.5rem;
+  white-space: nowrap;
+}
+
+/* ---------- Громкость ---------- */
+.audio-player__volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.audio-player__mute {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.audio-player__mute:hover {
+  color: var(--text-primary);
+}
+
+.audio-player__mute:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.audio-player__volume-slider {
+  flex: 0 0 60px;
+  width: 60px;
+}

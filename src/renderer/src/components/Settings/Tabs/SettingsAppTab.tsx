@@ -1,23 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import type { UpdateStatus } from '@shared/types';
-import {
-  useImageCompression,
-  setImageCompression,
-  type CompressionLevel
-} from '@renderer/utils/imageCompression';
-
-const LEVEL_LABELS: Record<CompressionLevel, string> = {
-  none: 'Без сжатия',
-  light: 'Слабое сжатие',
-  medium: 'Среднее сжатие',
-  strong: 'Сильное сжатие'
-};
 
 export const SettingsAppTab: React.FC = (): React.JSX.Element => {
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
   const [versions] = useState(window.electron.process.versions);
   const [appVersion, setAppVersion] = useState<string>('—');
-  const compression = useImageCompression();
 
   useEffect(() => {
     if (window.api && typeof window.api.onUpdateStatus === 'function') {
@@ -69,32 +56,8 @@ export const SettingsAppTab: React.FC = (): React.JSX.Element => {
     }
   };
 
-  const handleCompressionChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    void setImageCompression(e.target.value as CompressionLevel);
-  };
-
   return (
     <div className="settings-tab">
-      <section className="settings-tab__section">
-        <label className="settings-tab__field">
-          <span className="settings-tab__label">Сжатие изображений при отправке</span>
-          <select
-            className="settings-tab__input"
-            value={compression}
-            onChange={handleCompressionChange}
-          >
-            {(Object.keys(LEVEL_LABELS) as CompressionLevel[]).map((lvl) => (
-              <option key={lvl} value={lvl}>
-                {LEVEL_LABELS[lvl]}
-              </option>
-            ))}
-          </select>
-          <span className="settings-tab__hint">
-            Применяется ко всем картинкам. Для файлов больше 3 МБ будет предложено подтверждение.
-          </span>
-        </label>
-      </section>
-
       <section className="settings-tab__section">
         <div className="settings-tab__actions">
           <button

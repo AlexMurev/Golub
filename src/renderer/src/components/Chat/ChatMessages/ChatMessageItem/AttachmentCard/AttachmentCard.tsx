@@ -1,38 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Attachment } from '@shared/types';
 import { openImage } from '@renderer/utils/imageViewer';
+import { AudioPlayer } from '@renderer/components/AudioPlayer/AudioPlayer';
+import { formatSize, formatDuration } from '@renderer/utils/format';
+import ImageIcon from '@renderer/assets/image.svg?react';
+import VideoIcon from '@renderer/assets/video.svg?react';
+import AudioIcon from '@renderer/assets/audio.svg?react';
+import PdfIcon from '@renderer/assets/pdf.svg?react';
+import FileIcon from '@renderer/assets/file.svg?react';
+import ZipIcon from '@renderer/assets/zip.svg?react';
+import AttachIcon from '@renderer/assets/attach.svg?react';
+import DownloadIcon from '@renderer/assets/download.svg?react';
 import './AttachmentCard.css';
 
 interface AttachmentCardProps {
   attachment: Attachment;
   progress?: { transferred: number; total: number } | null;
+  onImageOpen?: () => void;
 }
 
-function formatSize(bytes: number | null): string {
-  if (bytes === null) return '';
-  if (bytes < 1024) return `${bytes} Б`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} ГБ`;
-}
-
-function formatDuration(seconds: number | null): string {
-  if (seconds === null || !Number.isFinite(seconds)) return '';
-  const total = Math.round(seconds);
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function getFileIcon(mime: string | null): string {
-  if (!mime) return '📎';
-  if (mime.startsWith('image/')) return '🖼️';
-  if (mime.startsWith('video/')) return '🎬';
-  if (mime.startsWith('audio/')) return '🎵';
-  if (mime === 'application/pdf') return '📕';
-  if (mime.startsWith('text/')) return '📄';
-  if (mime.includes('zip') || mime.includes('rar') || mime.includes('7z')) return '🗜️';
-  return '📎';
+function getFileIcon(mime: string | null): React.ReactNode {
+  if (!mime) return <AttachIcon height={45} width={45} />;
+  if (mime.startsWith('image/')) return <ImageIcon height={45} width={45} />;
+  if (mime.startsWith('video/')) return <VideoIcon height={45} width={45} />;
+  if (mime.startsWith('audio/')) return <AudioIcon height={45} width={45} />;
+  if (mime === 'application/pdf') return <PdfIcon height={45} width={45} />;
+  if (mime.startsWith('text/')) return <FileIcon height={45} width={45} />;
+  if (mime.includes('zip') || mime.includes('rar') || mime.includes('7z'))
+    return <ZipIcon height={45} width={45} />;
+  return <AttachIcon height={45} width={45} />;
 }
 
 function computeImageSize(
@@ -54,7 +50,28 @@ function computeImageSize(
   return { width: Math.round(dw), height: Math.round(dh) };
 }
 
-export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, progress }) => {
+interface UnavailableCardProps {
+  attachment: Attachment;
+  reason: string;
+}
+
+const UnavailableCard: React.FC<UnavailableCardProps> = ({ attachment, reason }) => (
+  <div className="attachment-card attachment-card--deleted">
+    <span className="attachment-card__icon">{getFileIcon(attachment.mimeType)}</span>
+    <div className="attachment-card__info">
+      <span className="attachment-card__name">{attachment.fileName ?? 'Файл'}</span>
+      <span className="attachment-card__size">{reason}</span>
+    </div>
+  </div>
+);
+
+export const AttachmentCard: React.FC<AttachmentCardProps> = ({
+  attachment,
+  progress,
+  onImageOpen
+}) => {
+  const [mediaFailed, setMediaFailed] = useState<boolean>(false);
+
   const mime = attachment.mimeType ?? '';
   const isImage = mime.startsWith('image/');
   const isVideo = mime.startsWith('video/');
@@ -77,9 +94,32 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, prog
     void window.api.files.saveAs(attachment.id);
   };
 
-  // ----------------------------------------------------------------
+  const handleMediaError = (): void => setMediaFailed(true);
+
+  const handleImageClick = (): void => {
+    if (onImageOpen) {
+      onImageOpen();
+    } else {
+      openImage([attachment], 0);
+    }
+  };
+
+  // Файл удалён очисткой (метка в БД)
+  if (attachment.fileDeletedAt !== null) {
+    return (
+      <UnavailableCard
+        attachment={attachment}
+        reason={`${formatSize(attachment.size)} • удалён для экономии места`}
+      />
+    );
+  }
+
+  // Файл не удалось загрузить (пропал с диска)
+  if (mediaFailed) {
+    return <UnavailableCard attachment={attachment} reason="файл недоступен" />;
+  }
+
   // Не готово — заглушка с прогрессом
-  // ----------------------------------------------------------------
   if (!isReady) {
     return (
       <div className="attachment-card attachment-card--loading">
@@ -99,73 +139,68 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, prog
     );
   }
 
-  // ----------------------------------------------------------------
   // Картинка
-  // ----------------------------------------------------------------
   if (isImage) {
-    const hasDims = attachment.width !== null && attachment.height !== null;
-    const size = hasDims ? computeImageSize(attachment.width!, attachment.height!) : null;
+    const { width, height } = attachment;
+    const size = width !== null && height !== null ? computeImageSize(width, height) : null;
 
     return (
       <button
         type="button"
         className="attachment-card attachment-card--image"
-        onClick={(): void => openImage(attachment)}
+        onClick={handleImageClick}
         title={attachment.fileName ?? ''}
-        style={size ? { width: size.width, height: size.height } : undefined}
+        style={size ?? undefined}
       >
         <img
           src={fileUrl}
           alt={attachment.fileName ?? ''}
           className="attachment-card__image"
-          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+          onError={handleMediaError}
         />
       </button>
     );
   }
 
-  // ----------------------------------------------------------------
   // Видео
-  // ----------------------------------------------------------------
   if (isVideo) {
     return (
       <div className="attachment-card attachment-card--video">
-        <video src={fileUrl} controls preload="metadata" className="attachment-card__video" />
-        <div className="attachment-card__video-footer">
-          <span className="attachment-card__name">{attachment.fileName ?? 'Видео'}</span>
-          <span className="attachment-card__size">
-            {formatSize(attachment.size)}
-            {attachment.duration && ` • ${formatDuration(attachment.duration)}`}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  // ----------------------------------------------------------------
-  // Аудио
-  // ----------------------------------------------------------------
-  if (isAudio) {
-    return (
-      <div className="attachment-card attachment-card--audio">
-        <div className="attachment-card__audio-head">
-          <span className="attachment-card__audio-icon">🎵</span>
-          <div className="attachment-card__info">
-            <span className="attachment-card__name">{attachment.fileName ?? 'Аудио'}</span>
+        <div className="attachment-card__video-wrapper">
+          <video
+            src={fileUrl}
+            controls
+            preload="metadata"
+            className="attachment-card__video"
+            onError={handleMediaError}
+          />
+          <div className="attachment-card__video-overlay">
+            <span className="attachment-card__name">{attachment.fileName ?? 'Видео'}</span>
             <span className="attachment-card__size">
               {formatSize(attachment.size)}
               {attachment.duration && ` • ${formatDuration(attachment.duration)}`}
             </span>
           </div>
         </div>
-        <audio src={fileUrl} controls preload="metadata" className="attachment-card__audio" />
       </div>
     );
   }
 
-  // ----------------------------------------------------------------
+  // Аудио
+  if (isAudio) {
+    return (
+      <div className="attachment-card attachment-card--audio">
+        <AudioPlayer
+          src={fileUrl}
+          fileName={attachment.fileName ?? 'Аудио'}
+          size={attachment.size}
+          duration={attachment.duration}
+        />
+      </div>
+    );
+  }
+
   // Обычный файл
-  // ----------------------------------------------------------------
   return (
     <div className="attachment-card attachment-card--file">
       <button
@@ -186,7 +221,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({ attachment, prog
         onClick={handleSaveAs}
         title="Сохранить как..."
       >
-        ⤓
+        <DownloadIcon width={40} height={40} />
       </button>
     </div>
   );

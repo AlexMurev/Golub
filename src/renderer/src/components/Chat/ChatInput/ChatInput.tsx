@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import SendIcon from '@renderer/assets/send.svg?react';
-import AttachIcon from '@renderer/assets/send.svg?react';
+import AttachIcon from '@renderer/assets/attach.svg?react';
 import { AttachmentPreview, type PendingAttachment } from './AttachmentPreview/AttachmentPreview';
 import './ChatInput.css';
 
@@ -89,7 +89,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           disabled={!isConnected}
           title="Прикрепить файл"
         >
-          <AttachIcon height={20} width={20} />
+          <AttachIcon height={30} width={30} />
         </button>
 
         <textarea

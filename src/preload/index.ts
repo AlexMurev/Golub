@@ -54,7 +54,12 @@ const api = {
     save: (base64: string, name: string) => ipcRenderer.invoke('files:save', base64, name),
     open: (attachmentId: string) => ipcRenderer.invoke('files:open', attachmentId),
     saveAs: (attachmentId: string) => ipcRenderer.invoke('files:saveAs', attachmentId),
-    delete: (attachmentId: string) => ipcRenderer.invoke('files:delete', attachmentId)
+    delete: (attachmentId: string) => ipcRenderer.invoke('files:delete', attachmentId),
+    cleanupGetSettings: () => ipcRenderer.invoke('files:cleanupGetSettings'),
+    cleanupSetSettings: (settings: unknown) =>
+      ipcRenderer.invoke('files:cleanupSetSettings', settings),
+    cleanupRun: () => ipcRenderer.invoke('files:cleanupRun'),
+    cleanupStats: () => ipcRenderer.invoke('files:cleanupStats')
   },
   link: {
     getPreview: (url: string) => ipcRenderer.invoke('link:preview', url)

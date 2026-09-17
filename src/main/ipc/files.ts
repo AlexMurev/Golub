@@ -2,6 +2,8 @@ import { ipcMain, shell, dialog } from 'electron';
 import { saveAttachmentFile, getAttachmentFullPath, deleteAttachmentFile } from '../files';
 import { getAttachment } from '../db/repositories/attachmentsRepo';
 import type { IpcContext } from './context';
+import { runCleanup, getCleanupSettings, setCleanupSettings, getStats } from '../filesCleanup';
+import type { CleanupSettings } from '../filesCleanup';
 
 export function registerFilesIpc(ctx: IpcContext): void {
   // Сохранить файл из base64 (полученный из renderer после чтения File)
@@ -49,4 +51,19 @@ export function registerFilesIpc(ctx: IpcContext): void {
     // softDelete в БД — сделаем позже, когда дойдём до UI удаления
     return { success: true };
   });
+
+  ipcMain.handle('files:cleanupGetSettings', () => getCleanupSettings());
+
+  ipcMain.handle('files:cleanupSetSettings', (_, settings: CleanupSettings) => {
+    setCleanupSettings(settings);
+    return { success: true };
+  });
+
+  ipcMain.handle('files:cleanupRun', () => {
+    const result = runCleanup(true);
+    ctx.notifyDataChanged();
+    return result;
+  });
+
+  ipcMain.handle('files:cleanupStats', () => getStats());
 }

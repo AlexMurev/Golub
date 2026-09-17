@@ -28,6 +28,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@wavesurfer/react": "^1.0.12",
     "better-sqlite3": "^13.0.3",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.3.9",
@@ -40,6 +41,7 @@
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "vite-plugin-svgr": "^5.2.0",
+    "wavesurfer.js": "^7.12.12",
     "ws": "^8.21.3"
   },
   "devDependencies": {

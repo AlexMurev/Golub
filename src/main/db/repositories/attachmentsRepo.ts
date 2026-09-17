@@ -41,8 +41,8 @@ export function insertAttachment(att: Attachment): void {
     .prepare(
       `INSERT OR IGNORE INTO attachments
         (id, messageId, fileName, mimeType, size, filePath, transferState,
-         width, height, duration, orderIndex, createdAt, deletedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         width, height, duration, orderIndex, createdAt, deletedAt, fileDeletedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       att.id,
@@ -57,7 +57,8 @@ export function insertAttachment(att: Attachment): void {
       att.duration,
       att.orderIndex,
       att.createdAt,
-      att.deletedAt
+      att.deletedAt,
+      att.fileDeletedAt
     );
 }
 
@@ -77,4 +78,46 @@ export function updateAttachmentFile(
   getDb()
     .prepare('UPDATE attachments SET filePath = ?, transferState = ? WHERE id = ?')
     .run(filePath, transferState, id);
+}
+
+export interface AttachmentForCleanup {
+  id: string;
+  filePath: string | null;
+  size: number | null;
+  createdAt: number | null;
+}
+
+// Все файлы-кандидаты на удаление: есть filePath, не удалены, fileDeletedAt ещё не стоит.
+export function listAttachmentsForCleanup(): AttachmentForCleanup[] {
+  return getDb()
+    .prepare(
+      `SELECT id, filePath, size, createdAt FROM attachments
+       WHERE filePath IS NOT NULL
+         AND deletedAt IS NULL
+         AND fileDeletedAt IS NULL
+       ORDER BY createdAt ASC`
+    )
+    .all() as AttachmentForCleanup[];
+}
+
+export function markFileDeleted(id: string): void {
+  getDb()
+    .prepare('UPDATE attachments SET fileDeletedAt = ?, filePath = NULL WHERE id = ?')
+    .run(Date.now(), id);
+}
+
+// Статистика для UI настроек
+export interface FilesStats {
+  count: number;
+  totalSize: number;
+}
+
+export function getFilesStats(): FilesStats {
+  const row = getDb()
+    .prepare(
+      `SELECT COUNT(*) AS count, COALESCE(SUM(size), 0) AS totalSize FROM attachments
+       WHERE filePath IS NOT NULL AND deletedAt IS NULL AND fileDeletedAt IS NULL`
+    )
+    .get() as FilesStats;
+  return row;
 }

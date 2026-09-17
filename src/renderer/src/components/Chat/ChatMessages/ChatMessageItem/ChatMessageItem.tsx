@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import type { Message } from '@shared/types';
 import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
+import { openImage } from '@renderer/utils/imageViewer';
 import ReplyIcon from '@renderer/assets/reply.svg?react';
-import { MessageText } from './MessageText';
-import { LinkPreview } from './LinkPreview';
+import { MarkDownText } from '../../../MarkDownText/MarkDownText';
+import { LinkPreview } from './LinkPreview/LinkPreview';
 import { AttachmentCard } from './AttachmentCard/AttachmentCard';
 import './ChatMessageItem.css';
 
@@ -67,6 +68,9 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
 
     const firstUrl: string | null = extractFirstUrl(msg.text);
     const isVideo: boolean = firstUrl !== null && isVideoUrl(firstUrl);
+    const isUrlOnly: boolean = firstUrl !== null && msg.text.trim() === firstUrl;
+
+    const imageAttachments = msg.attachments.filter((att) => att.mimeType?.startsWith('image/'));
 
     const handleEditChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
       setEditText(e.target.value);
@@ -160,14 +164,25 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
               <span className="message__edit-hint">escape — отмена • enter — сохранить</span>
             </div>
           ) : (
-            msg.text && <MessageText text={msg.text} />
+            msg.text && <MarkDownText text={msg.text} />
           )}
 
           {msg.attachments.length > 0 && (
             <div className="message__attachments">
-              {msg.attachments.map((att) => (
-                <AttachmentCard key={att.id} attachment={att} />
-              ))}
+              {msg.attachments.map((att) => {
+                const imageIndex = imageAttachments.indexOf(att);
+                return (
+                  <AttachmentCard
+                    key={att.id}
+                    attachment={att}
+                    onImageOpen={
+                      imageIndex !== -1
+                        ? (): void => openImage(imageAttachments, imageIndex)
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -177,7 +192,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
             </div>
           )}
 
-          {!isEditing && !isVideo && firstUrl && <LinkPreview url={firstUrl} />}
+          {!isEditing && !isVideo && firstUrl && isUrlOnly && <LinkPreview url={firstUrl} />}
         </div>
       </div>
     );

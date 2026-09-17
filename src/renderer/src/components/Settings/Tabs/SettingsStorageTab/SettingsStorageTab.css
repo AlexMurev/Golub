@@ -1,0 +1,83 @@
+/* Статистика */
+.settings-storage__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+}
+
+.settings-storage__stats-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-storage__stats-label {
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+}
+
+.settings-storage__stats-value {
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Правила очистки */
+.settings-storage__rule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  transition: opacity var(--transition-fast);
+}
+
+.settings-storage__rule--disabled {
+  opacity: 0.5;
+}
+
+.settings-storage__rule-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-storage__rule-text {
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+  white-space: nowrap;
+}
+
+.settings-storage__rule-input {
+  width: 70px;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.6rem;
+  outline: none;
+  transition: background var(--transition-fast);
+}
+
+.settings-storage__rule-input:focus {
+  background: var(--bg-elevated);
+}
+
+.settings-storage__rule-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-storage__rule-input::-webkit-outer-spin-button,
+.settings-storage__rule-input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}

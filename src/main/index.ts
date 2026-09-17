@@ -6,14 +6,17 @@ import { initDb, closeDb } from './db';
 import { initIpc } from './ipc';
 import { ensureSelfUser } from './bootstrap';
 import { startTransportAuto, stopTransport } from './transport';
-import { getAttachment } from './db/repositories/attachmentsRepo';
+import { getAttachment, markFileDeleted } from './db/repositories/attachmentsRepo';
 import { getAttachmentFullPath } from './files';
+import { runCleanup, shouldRunCleanup } from './filesCleanup';
 import { protocol, app, BrowserWindow, ipcMain, shell } from 'electron';
 import { createReadStream, statSync, existsSync } from 'fs';
 import { Readable } from 'stream';
 import { initUpdater } from './updater';
 
 const windowIcon: string = process.platform === 'win32' ? iconIco : icon;
+
+let cleanupInterval: NodeJS.Timeout | null = null;
 
 // Регистрируем привилегированную схему ДО app.whenReady()
 protocol.registerSchemesAsPrivileged([
@@ -100,7 +103,11 @@ app.whenReady().then(async (): Promise<void> => {
       if (!att?.filePath) return new Response(null, { status: 404 });
 
       const fullPath = getAttachmentFullPath(att.filePath);
-      if (!existsSync(fullPath)) return new Response(null, { status: 404 });
+      if (!existsSync(fullPath)) {
+        // Файл пропал с диска — синхронизируем БД
+        markFileDeleted(att.id);
+        return new Response(null, { status: 404 });
+      }
 
       const stat = statSync(fullPath);
       const contentType = att.mimeType ?? 'application/octet-stream';
@@ -173,12 +180,30 @@ app.whenReady().then(async (): Promise<void> => {
     console.error('Failed to start transport:', err);
   }
 
+  // Автоочистка файлов: первый запуск через 30 секунд после старта,
+  // затем раз в сутки. Сработает только если в настройках включено.
+  setTimeout((): void => {
+    if (shouldRunCleanup()) runCleanup();
+  }, 30_000);
+
+  // Раз в час проверяем, не прошло ли 24 часа с последней очистки
+  cleanupInterval = setInterval(
+    (): void => {
+      if (shouldRunCleanup()) runCleanup();
+    },
+    60 * 60 * 1000
+  );
+
   app.on('activate', function (): void {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on('will-quit', (): void => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
   stopTransport();
   closeDb();
 });

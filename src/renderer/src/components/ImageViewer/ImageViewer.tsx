@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useImageViewer, closeImage } from '@renderer/utils/imageViewer';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useImageViewer, closeImage, setImageIndex } from '@renderer/utils/imageViewer';
 import './ImageViewer.css';
+import CloseIcon from '@renderer/assets/close.svg?react';
+import DownloadIcon from '@renderer/assets/download.svg?react';
+import ChevronRightIcon from '@renderer/assets/chevron-right.svg?react';
+import ChevronLeftIcon from '@renderer/assets/chevron-left.svg?react';
 
 interface DragState {
   startX: number;
@@ -9,48 +13,78 @@ interface DragState {
   startOffsetY: number;
 }
 
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 8;
+// Один «клик» колеса (deltaY ≈ 100) даёт ~10% изменения.
+// Экспонента симметрична: увеличение и уменьшение компенсируют друг друга.
+const ZOOM_SPEED = 0.001;
+const CLOSE_ANIMATION_MS = 150;
+
 export const ImageViewer: React.FC = (): React.JSX.Element | null => {
-  const { attachment } = useImageViewer();
+  const { attachments, index } = useImageViewer();
+  const attachment = attachments[index] ?? null;
+
   const [zoom, setZoom] = useState<number>(1);
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [prevAttachmentId, setPrevAttachmentId] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState<boolean>(false);
+  const [prevKey, setPrevKey] = useState<string>('');
   const dragRef = useRef<DragState | null>(null);
 
-  const currentId = attachment?.id ?? null;
-
-  // Сброс зума при смене картинки — во время рендера, а не в effect.
-  if (currentId !== prevAttachmentId) {
-    setPrevAttachmentId(currentId);
+  // Сброс зума при смене картинки (по id) или переходе на соседнюю (по индексу).
+  const currentKey = `${attachment?.id ?? ''}:${index}`;
+  if (currentKey !== prevKey) {
+    setPrevKey(currentKey);
     setZoom(1);
     setOffset({ x: 0, y: 0 });
+    setIsClosing(false);
   }
 
-  // Escape — закрыть
+  const handleClose = useCallback((): void => {
+    setIsClosing(true);
+    window.setTimeout((): void => {
+      closeImage();
+    }, CLOSE_ANIMATION_MS);
+  }, []);
+
+  const handlePrev = useCallback((): void => {
+    setImageIndex(index - 1);
+  }, [index]);
+
+  const handleNext = useCallback((): void => {
+    setImageIndex(index + 1);
+  }, [index]);
+
   useEffect(() => {
     if (!attachment) return;
+
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') closeImage();
+      if (e.key === 'Escape') handleClose();
+      else if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'ArrowRight') handleNext();
     };
     window.addEventListener('keydown', onKey);
     return (): void => {
       window.removeEventListener('keydown', onKey);
     };
-  }, [attachment]);
+  }, [attachment, handleClose, handlePrev, handleNext]);
 
   if (!attachment) return null;
 
   const url = `golub-file://${attachment.id}`;
+  const hasPrev = index > 0;
+  const hasNext = index < attachments.length - 1;
+  const showCounter = attachments.length > 1;
 
   const handleWheel = (e: React.WheelEvent<HTMLImageElement>): void => {
     e.preventDefault();
-    const delta = -e.deltaY * 0.002;
-    setZoom((z) => Math.max(0.2, Math.min(8, z + delta * z)));
+    const factor = Math.exp(-e.deltaY * ZOOM_SPEED);
+    setZoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z * factor)));
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>): void => {
-    if (zoom <= 1) return;
+  const handlePointerDown = (e: React.PointerEvent<HTMLImageElement>): void => {
     e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -60,7 +94,7 @@ export const ImageViewer: React.FC = (): React.JSX.Element | null => {
     setIsDragging(true);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>): void => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLImageElement>): void => {
     if (!dragRef.current) return;
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
@@ -70,9 +104,15 @@ export const ImageViewer: React.FC = (): React.JSX.Element | null => {
     });
   };
 
-  const handleMouseUp = (): void => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLImageElement>): void => {
+    if (!dragRef.current) return;
     dragRef.current = null;
     setIsDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
   const reset = (): void => {
@@ -80,16 +120,23 @@ export const ImageViewer: React.FC = (): React.JSX.Element | null => {
     setOffset({ x: 0, y: 0 });
   };
 
-  const cursor: string = zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default';
+  const cursor: string = isDragging ? 'grabbing' : 'grab';
+  const showZoomIndicator = Math.abs(zoom - 1) > 0.01;
 
   return (
-    <div
-      className="image-viewer"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      <div className="image-viewer__backdrop" onClick={closeImage} />
+    <div className={`image-viewer ${isClosing ? 'image-viewer--closing' : ''}`}>
+      <div className="image-viewer__backdrop" onClick={handleClose} />
+
+      {hasPrev && (
+        <button
+          type="button"
+          className="image-viewer__nav image-viewer__nav--prev"
+          onClick={handlePrev}
+          title="Предыдущее (←)"
+        >
+          <ChevronLeftIcon width={200} height={200} opacity={0.1} />
+        </button>
+      )}
 
       <img
         src={url}
@@ -98,24 +145,51 @@ export const ImageViewer: React.FC = (): React.JSX.Element | null => {
         style={{
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
           cursor,
-          transition: isDragging ? 'none' : 'transform 0.05s linear'
+          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)'
         }}
         onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         onDoubleClick={reset}
         draggable={false}
       />
+
+      {hasNext && (
+        <button
+          type="button"
+          className="image-viewer__nav image-viewer__nav--next"
+          onClick={handleNext}
+          title="Следующее (→)"
+        >
+          <ChevronRightIcon width={200} height={200} opacity={0.1} />
+        </button>
+      )}
+
+      {showCounter && (
+        <div className="image-viewer__counter">
+          {index + 1} / {attachments.length}
+        </div>
+      )}
+
+      {showZoomIndicator && <div className="image-viewer__zoom">{Math.round(zoom * 100)}%</div>}
 
       <div className="image-viewer__toolbar">
         <button
           type="button"
           className="image-viewer__button"
           onClick={(): void => void window.api.files.saveAs(attachment.id)}
+          title="Скачать"
         >
-          Скачать
+          <DownloadIcon height={40} width={40} />
         </button>
-        <button type="button" className="image-viewer__button" onClick={closeImage}>
-          Закрыть
+        <button
+          type="button"
+          className="image-viewer__button"
+          onClick={handleClose}
+          title="Закрыть (Esc)"
+        >
+          <CloseIcon height={40} width={40} />
         </button>
       </div>
     </div>

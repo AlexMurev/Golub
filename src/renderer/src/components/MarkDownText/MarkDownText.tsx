@@ -2,13 +2,13 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import './MessageText.css';
+import './MarkDownText.css';
 
 interface MessageTextProps {
   text: string;
 }
 
-export const MessageText: React.FC<MessageTextProps> = ({ text }) => {
+export const MarkDownText: React.FC<MessageTextProps> = ({ text }) => {
   return (
     <div className="message__text">
       <ReactMarkdown

@@ -2,6 +2,13 @@ import { ipcMain, nativeImage, app } from 'electron';
 import { getSetting, setSetting } from '../db/repositories/settingsRepo';
 import { getLinkPreview } from 'link-preview-js';
 import type { IpcContext } from './context';
+import { promises as dns } from 'node:dns';
+
+async function resolveDNSHost(url: string): Promise<string> {
+  const hostname = new URL(url).hostname;
+  const { address } = await dns.lookup(hostname);
+  return address;
+}
 
 export function registerAppIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -14,7 +21,8 @@ export function registerAppIpc(ctx: IpcContext): void {
     try {
       const data = await getLinkPreview(url, {
         timeout: 5000,
-        headers: { 'user-agent': 'Golub/1.0' }
+        headers: { 'user-agent': 'Golub/1.0' },
+        resolveDNSHost
       });
       return { success: true, data };
     } catch (err) {

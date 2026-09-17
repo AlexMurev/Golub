@@ -2,23 +2,30 @@ import { useSyncExternalStore } from 'react';
 import type { Attachment } from '@shared/types';
 
 interface ViewerState {
-  attachment: Attachment | null;
+  attachments: Attachment[];
+  index: number;
 }
 
-let state: ViewerState = { attachment: null };
+let state: ViewerState = { attachments: [], index: 0 };
 const listeners = new Set<() => void>();
 
 function emit(): void {
   listeners.forEach((l) => l());
 }
 
-export function openImage(attachment: Attachment): void {
-  state = { attachment };
+export function openImage(attachments: Attachment[], index: number): void {
+  state = { attachments, index };
   emit();
 }
 
 export function closeImage(): void {
-  state = { attachment: null };
+  state = { attachments: [], index: 0 };
+  emit();
+}
+
+export function setImageIndex(index: number): void {
+  if (index < 0 || index >= state.attachments.length) return;
+  state = { ...state, index };
   emit();
 }
 

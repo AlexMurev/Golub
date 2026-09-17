@@ -96,6 +96,7 @@ export interface Attachment {
   orderIndex: number;
   createdAt: number | null;
   deletedAt: number | null;
+  fileDeletedAt: number | null;
 }
 
 export interface Reaction {
