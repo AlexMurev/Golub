@@ -13,8 +13,13 @@ import { sendTo } from '../transport';
 import { peerFromDirectChat } from './helpers';
 import type { IpcContext } from './context';
 import type { Attachment, Message } from '@shared/types';
-import { insertAttachment } from '../db/repositories/attachmentsRepo';
+import {
+  insertAttachment,
+  listForMessage,
+  softDeleteAttachment
+} from '../db/repositories/attachmentsRepo';
 import { enqueueOutgoing } from '../transfer/manager';
+import { deleteAttachmentFile } from '../files';
 
 export function registerMessagesIpc(ctx: IpcContext): void {
   ipcMain.handle('messages:list', (_, chatId: string, limit = 200, before?: number) => {
@@ -121,6 +126,13 @@ export function registerMessagesIpc(ctx: IpcContext): void {
     const msg = getMessage(messageId);
     if (!msg) return { success: false };
     if (msg.senderId !== self.peerId) return { success: false, error: 'Не ваше сообщение' };
+
+    // Удаляем файлы сообщения с диска и из БД
+    const attachments = listForMessage(messageId);
+    for (const att of attachments) {
+      if (att.filePath) deleteAttachmentFile(att.filePath);
+      softDeleteAttachment(att.id);
+    }
 
     softDeleteMessage(messageId);
     ctx.notifyDataChanged();

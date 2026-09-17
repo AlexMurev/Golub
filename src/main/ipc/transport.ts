@@ -27,8 +27,13 @@ import {
 import { flushPendingForPeer } from './helpers';
 import type { IpcContext } from './context';
 import type { Message } from '@shared/types';
-import { insertAttachment } from '../db/repositories/attachmentsRepo';
+import {
+  insertAttachment,
+  listForMessage,
+  softDeleteAttachment
+} from '../db/repositories/attachmentsRepo';
 import { handleIncoming, retryPendingForPeer } from '../transfer/manager';
+import { deleteAttachmentFile } from '../files';
 
 export function registerTransportIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -120,6 +125,14 @@ export function registerTransportIpc(ctx: IpcContext): void {
 
     if (p.type === 'delete-message' && p.payload) {
       const { id } = p.payload as { id: string };
+
+      // Удаляем файлы сообщения с диска и из БД
+      const attachments = listForMessage(id);
+      for (const att of attachments) {
+        if (att.filePath) deleteAttachmentFile(att.filePath);
+        softDeleteAttachment(att.id);
+      }
+
       softDeleteMessage(id);
       ctx.send('transport:message', from, payload);
     }
