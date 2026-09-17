@@ -127,6 +127,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           return (
             <ChatMessageItem
               msg={msg}
+              myId={myId}
               isGrouped={isGrouped}
               isHighlighted={highlightedId === msg.id}
               isEditing={editingId === msg.id}

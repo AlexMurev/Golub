@@ -18,6 +18,10 @@ interface API {
       level: 'none' | 'light' | 'medium' | 'strong'
     ) => Promise<{ success: boolean }>;
   };
+  privacy: {
+    getReadReceipts: () => Promise<'immediate' | 'on-reply'>;
+    setReadReceipts: (value: 'immediate' | 'on-reply') => Promise<{ success: boolean }>;
+  };
   transfer: {
     cancel: (attachmentId: string) => Promise<{ success: boolean }>;
     onProgress: (

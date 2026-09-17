@@ -54,6 +54,20 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
     void window.api.app.setBadgeEnabled(enabled);
   };
 
+  const [readReceipts, setReadReceipts] = useState<'immediate' | 'on-reply'>('immediate');
+
+  useEffect(() => {
+    void window.api.privacy.getReadReceipts().then((v) => {
+      setReadReceipts(v === 'on-reply' ? 'on-reply' : 'immediate');
+    });
+  }, []);
+
+  const handleReadReceiptsChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    const value = e.target.value as 'immediate' | 'on-reply';
+    setReadReceipts(value);
+    void window.api.privacy.setReadReceipts(value);
+  };
+
   return (
     <div className="settings-tab">
       <section className="settings-tab__section">
@@ -128,6 +142,24 @@ export const SettingsNotificationsTab: React.FC = (): React.JSX.Element => {
         <span className="settings-tab__hint">
           Включайте, если в вашем mp3 звук слышен только в одном наушнике.
         </span>
+      </section>
+
+      <section className="settings-tab__section">
+        <label className="settings-tab__field">
+          <span className="settings-tab__label">Отправлять статус прочтения</span>
+          <select
+            className="settings-tab__input"
+            value={readReceipts}
+            onChange={handleReadReceiptsChange}
+          >
+            <option value="immediate">Сразу при просмотре</option>
+            <option value="on-reply">Только при ответе</option>
+          </select>
+          <span className="settings-tab__hint">
+            Вторая галочка появляется у собеседника, только когда вы прочитали сообщение согласно
+            этому режиму.
+          </span>
+        </label>
       </section>
 
       <section className="settings-tab__section">

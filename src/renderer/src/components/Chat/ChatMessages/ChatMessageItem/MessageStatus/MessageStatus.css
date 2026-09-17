@@ -1,0 +1,7 @@
+.message__status {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}

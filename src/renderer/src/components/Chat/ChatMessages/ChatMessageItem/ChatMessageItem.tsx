@@ -7,10 +7,12 @@ import ReplyIcon from '@renderer/assets/reply.svg?react';
 import { MarkDownText } from '../../../MarkDownText/MarkDownText';
 import { LinkPreview } from './LinkPreview/LinkPreview';
 import { AttachmentCard } from './AttachmentCard/AttachmentCard';
+import { MessageStatus } from './MessageStatus/MessageStatus';
 import './ChatMessageItem.css';
 
 interface ChatMessageItemProps {
   msg: Message;
+  myId: string;
   isGrouped: boolean;
   isHighlighted: boolean;
   isEditing: boolean;
@@ -33,6 +35,7 @@ function isVideoUrl(url: string): boolean {
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
   ({
     msg,
+    myId,
     isGrouped,
     isHighlighted,
     isEditing,
@@ -63,6 +66,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
 
     if (msg.deletedAt) return null;
 
+    const isOwn = msg.senderId === myId;
     const avatarPlaceholder: string = msg.senderNickname.charAt(0).toUpperCase() || 'A';
     const replyPlaceholder: string = msg.replyTo?.senderNickname.charAt(0).toUpperCase() || 'A';
 
@@ -102,7 +106,10 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
       >
         <div className="message-row__left-column">
           {isGrouped ? (
-            <span className="message-row__hover-time">{formatShortTime(msg.createdAt)}</span>
+            <span className="message-row__hover-time">
+              {formatShortTime(msg.createdAt)}
+              {isOwn && !isEditing && <MessageStatus status={msg.status} />}
+            </span>
           ) : msg.senderAvatar ? (
             <img src={msg.senderAvatar} alt={msg.senderNickname} className="message__avatar" />
           ) : (
@@ -148,6 +155,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
               <span className="message__sender">{msg.senderNickname}</span>
               <span className="message__timestamp">{formatFullDate(msg.createdAt)}</span>
               {msg.editedAt && <span className="message__edited">(изменено)</span>}
+              {isOwn && !isEditing && <MessageStatus status={msg.status} />}
             </div>
           )}
 

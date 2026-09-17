@@ -1,8 +1,10 @@
 import { ipcMain } from 'electron';
 import { ensureDirectChat, listChatItems, markChatRead } from '../db/repositories/chatsRepo';
 import { getSelf, ensureUser } from '../db/repositories/usersRepo';
-import { isConnectedTo } from '../transport';
+import { isConnectedTo, sendTo } from '../transport';
 import type { IpcContext } from './context';
+import { getSetting } from '../db/repositories/settingsRepo';
+import { peerFromDirectChat } from './helpers';
 
 export function registerChatsIpc(ctx: IpcContext): void {
   ipcMain.handle('chats:list', () => {
@@ -29,6 +31,15 @@ export function registerChatsIpc(ctx: IpcContext): void {
     if (!self) return { success: false };
 
     markChatRead(chatId, self.peerId);
+
+    const privacy = getSetting('privacy:readReceipts') ?? 'immediate';
+    if (privacy === 'immediate') {
+      const peerId = peerFromDirectChat(chatId, self.peerId);
+      if (peerId) {
+        void sendTo(peerId, { type: 'message-read', payload: { chatId } });
+      }
+    }
+
     ctx.notifyDataChanged();
     return { success: true };
   });

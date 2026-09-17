@@ -22,7 +22,9 @@ import {
   upsertMessage,
   editMessage,
   softDeleteMessage,
-  getMessage
+  getMessage,
+  setMessageStatus,
+  markSentMessagesAsRead
 } from '../db/repositories/messagesRepo';
 import { flushPendingForPeer } from './helpers';
 import type { IpcContext } from './context';
@@ -34,6 +36,7 @@ import {
 } from '../db/repositories/attachmentsRepo';
 import { handleIncoming, retryPendingForPeer } from '../transfer/manager';
 import { deleteAttachmentFile } from '../files';
+import { getSetting } from '../db/repositories/settingsRepo';
 
 export function registerTransportIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -92,6 +95,23 @@ export function registerTransportIpc(ctx: IpcContext): void {
       return;
     }
 
+    if (p.type === 'message-delivered' && p.payload) {
+      const { id } = p.payload as { id: string };
+      const msg = getMessage(id);
+      if (msg && msg.senderId === self.peerId && msg.status !== 'read') {
+        setMessageStatus(id, 'delivered');
+        ctx.send('transport:message', from, payload);
+      }
+      return;
+    }
+
+    if (p.type === 'message-read' && p.payload) {
+      const { chatId } = p.payload as { chatId: string };
+      markSentMessagesAsRead(chatId, self.peerId);
+      ctx.send('transport:message', from, payload);
+      return;
+    }
+
     if (p.type === 'message' && p.payload) {
       const incoming = p.payload as Message;
       ensureUser(incoming.senderId, incoming.senderNickname, incoming.senderAvatar);
@@ -110,6 +130,10 @@ export function registerTransportIpc(ctx: IpcContext): void {
 
       touchChat(incoming.chatId);
       ctx.send('transport:message', from, payload);
+      const privacy = getSetting('privacy:readReceipts') ?? 'immediate';
+      if (privacy !== 'never') {
+        void sendTo(from, { type: 'message-delivered', payload: { id: incoming.id } });
+      }
       return;
     }
 

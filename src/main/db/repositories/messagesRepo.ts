@@ -171,3 +171,24 @@ export function listPendingForChat(chatId: string): Message[] {
     .all(chatId) as MessageRaw[];
   return attachAttachments(rows.map(toMessage));
 }
+
+// Пометить прочитанными все мои сообщения в чате (когда собеседник прислал read-receipt)
+export function markSentMessagesAsRead(chatId: string, selfId: string): void {
+  getDb()
+    .prepare(
+      `UPDATE messages SET status = 'read'
+       WHERE chatId = ? AND senderId = ? AND status IN ('pending', 'sent', 'delivered')`
+    )
+    .run(chatId, selfId);
+}
+
+// Есть ли в чате мои сообщения, которые ещё не прочитаны собеседником
+export function countUnreadByPeer(chatId: string, selfId: string): number {
+  const row = getDb()
+    .prepare(
+      `SELECT COUNT(*) AS c FROM messages
+       WHERE chatId = ? AND senderId = ? AND status IN ('sent', 'delivered')`
+    )
+    .get(chatId, selfId) as { c: number };
+  return row.c;
+}

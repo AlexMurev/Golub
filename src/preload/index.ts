@@ -25,6 +25,10 @@ const api = {
     setImageCompression: (level: string) =>
       ipcRenderer.invoke('settings:setImageCompression', level)
   },
+  privacy: {
+    getReadReceipts: () => ipcRenderer.invoke('privacy:getReadReceipts'),
+    setReadReceipts: (value: string) => ipcRenderer.invoke('privacy:setReadReceipts', value)
+  },
   transfer: {
     cancel: (attachmentId: string) => ipcRenderer.invoke('transfer:cancel', attachmentId),
     onProgress: (cb: (data: unknown) => void) => {

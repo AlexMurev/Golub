@@ -254,3 +254,7 @@
   color: var(--text-muted);
   font-size: 0.42rem;
 }
+
+.message-row__hover-time .message__status {
+  margin-left: 4px;
+}

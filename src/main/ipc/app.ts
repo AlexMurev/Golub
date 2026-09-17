@@ -98,4 +98,17 @@ export function registerAppIpc(ctx: IpcContext): void {
     setSetting('images:compression', level);
     return { success: true };
   });
+
+  // =========================================================================
+  // Privacy
+  // =========================================================================
+
+  ipcMain.handle('privacy:getReadReceipts', () => {
+    return getSetting('privacy:readReceipts') ?? 'immediate';
+  });
+
+  ipcMain.handle('privacy:setReadReceipts', (_, value: string) => {
+    setSetting('privacy:readReceipts', value);
+    return { success: true };
+  });
 }

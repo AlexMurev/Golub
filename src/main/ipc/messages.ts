@@ -20,6 +20,7 @@ import {
 } from '../db/repositories/attachmentsRepo';
 import { enqueueOutgoing } from '../transfer/manager';
 import { deleteAttachmentFile } from '../files';
+import { getSetting } from '../db/repositories/settingsRepo';
 
 export function registerMessagesIpc(ctx: IpcContext): void {
   ipcMain.handle('messages:list', (_, chatId: string, limit = 200, before?: number) => {
@@ -89,7 +90,10 @@ export function registerMessagesIpc(ctx: IpcContext): void {
       for (const att of insertedAttachments) {
         enqueueOutgoing(peerId, att);
       }
-
+      const privacy = getSetting('privacy:readReceipts') ?? 'immediate';
+      if (privacy === 'on-reply') {
+        void sendTo(peerId, { type: 'message-read', payload: { chatId } });
+      }
       return { success: true, message };
     }
   );
