@@ -1,11 +1,14 @@
 import { app } from 'electron';
-import { dirname, join } from 'path';
+import { dirname, join, isAbsolute } from 'path';
 import { mkdirSync } from 'fs';
 
 export function getDataDir(): string {
   const override = process.env.GOLUB_DATA_DIR;
   if (override) {
-    return override;
+    if (isAbsolute(override)) return override;
+    // Относительный путь — от корня проекта (dev) или от папки exe (prod)
+    const base = app.isPackaged ? dirname(process.execPath) : app.getAppPath();
+    return join(base, override);
   }
 
   if (app.isPackaged) {

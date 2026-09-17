@@ -56,6 +56,7 @@ function createWindow(): void {
       sandbox: false
     }
   });
+  mainWindow.webContents.openDevTools();
 
   ipcMain.on('set-titlebar-color', (_event: Electron.IpcMainEvent, color: string): void => {
     mainWindow.setTitleBarOverlay({

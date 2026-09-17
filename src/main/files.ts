@@ -1,13 +1,11 @@
-import { app } from 'electron';
 import { join, extname } from 'path';
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
+import { getDataDir } from './paths';
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024 * 1024;
 
 function attachmentsDir(): string {
-  const override = process.env.GOLUB_DATA_DIR;
-  const base = override ? join(app.getAppPath(), override) : join(app.getAppPath(), 'data');
-  const dir = join(base, 'attachments');
+  const dir = join(getDataDir(), 'attachments');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }

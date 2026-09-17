@@ -1,12 +1,12 @@
 import { createReadStream, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, extname } from 'path';
-import { app } from 'electron';
 import { sendTo } from '../transport';
 import { setTransferState, updateAttachmentFile } from '../db/repositories/attachmentsRepo';
 import { getDb } from '../db/index';
 import { getSelf } from '../db/repositories/usersRepo';
 import { getDirectChatId } from '../db/repositories/chatsRepo';
 import type { Attachment } from '@shared/types';
+import { getDataDir } from '../paths';
 
 const CHUNK_SIZE = 256 * 1024; // 256 КБ
 const PROGRESS_THROTTLE_MS = 100;
@@ -111,9 +111,7 @@ function emitFailed(attachmentId: string, direction: 'up' | 'down', error: strin
 // =============================================================================
 
 function attachmentsDir(): string {
-  const override = process.env.GOLUB_DATA_DIR;
-  const base = override ? join(app.getAppPath(), override) : join(app.getAppPath(), 'data');
-  const dir = join(base, 'attachments');
+  const dir = join(getDataDir(), 'attachments');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }

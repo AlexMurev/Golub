@@ -1,7 +1,7 @@
-import { app } from 'electron';
 import { extname, join } from 'path';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import defaultSoundPath from '../../resources/sounds/default.mp3?asset';
+import { getDataDir } from './paths';
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 МБ
 
@@ -24,9 +24,7 @@ const EXT_TO_MIME: Record<string, string> = {
 };
 
 function soundsDir(): string {
-  const override = process.env.GOLUB_DATA_DIR;
-  const base = override ? join(app.getAppPath(), override) : join(app.getAppPath(), 'data');
-  const dir = join(base, 'sounds');
+  const dir = join(getDataDir(), 'sounds');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }
