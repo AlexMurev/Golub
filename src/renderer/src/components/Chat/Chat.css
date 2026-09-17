@@ -93,6 +93,7 @@
   min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--bg-tertiary) transparent;
+  padding-left: 12px;
 }
 
 .chat-messages__loader {
