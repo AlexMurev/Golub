@@ -196,7 +196,19 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
 
           {!isEditing && isVideo && firstUrl && (
             <div className="message__video">
-              <ReactPlayer src={firstUrl} width="100%" height="100%" controls />
+              <ReactPlayer
+                src={firstUrl}
+                width="100%"
+                height="100%"
+                volume={0.25}
+                controls
+                config={{
+                  youtube: {
+                    origin: window.location.origin,
+                    referrerpolicy: 'strict-origin-when-cross-origin'
+                  }
+                }}
+              />
             </div>
           )}
 

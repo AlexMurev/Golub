@@ -11,7 +11,7 @@ interface ChatInputProps {
   isConnected: boolean;
   hasReply: boolean;
   attachments: PendingAttachment[];
-  onAddAttachments: (files: FileList) => void;
+  onAddAttachments: (files: FileList | File[]) => void;
   onRemoveAttachment: (id: string) => void;
 }
 
@@ -56,6 +56,34 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     e.target.value = '';
   };
 
+  // Вставка изображений из буфера
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>): void => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        // У файлов из буфера часто пустое имя или image.png — дадим осмысленное
+        if (!file.name) {
+          const ext = file.type.split('/')[1] || 'png';
+          files.push(new File([file], `pasted-${Date.now()}.${ext}`, { type: file.type }));
+        } else {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      e.preventDefault();
+      onAddAttachments(files);
+    }
+  };
+
   const hasContent = input.trim().length > 0 || attachments.length > 0;
 
   return (
@@ -98,6 +126,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>): void => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           onFocus={(): void => setIsFocused(true)}
           onBlur={(): void => setIsFocused(false)}
           placeholder={hasReply ? 'Введите ответ...' : 'Введите сообщение...'}

@@ -41,7 +41,7 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
 
   // ==========================================================================
-  // Измерение высоты нижней панели — чтобы сообщения не «ныряли» под неё
+  // Измерение высоты нижней панели
   // ==========================================================================
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -128,6 +128,58 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
   }, []);
 
   // ==========================================================================
+  // Drag & drop
+  // ==========================================================================
+
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const dragCounterRef = useRef<number>(0);
+
+  // Глобально предотвращаем дефолтное поведение Electron
+  // (навигацию к файлу, если его бросили вне зоны чата)
+  useEffect(() => {
+    const prevent = (e: DragEvent): void => e.preventDefault();
+    window.addEventListener('dragover', prevent);
+    window.addEventListener('drop', prevent);
+    return (): void => {
+      window.removeEventListener('dragover', prevent);
+      window.removeEventListener('drop', prevent);
+    };
+  }, []);
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {
+    if (!e.dataTransfer.types.includes('Files')) return;
+    e.preventDefault();
+    dragCounterRef.current++;
+    if (dragCounterRef.current === 1) setIsDragging(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
+    if (!e.dataTransfer.types.includes('Files')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    dragCounterRef.current--;
+    if (dragCounterRef.current <= 0) {
+      dragCounterRef.current = 0;
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleAddAttachments(files);
+    }
+  };
+
+  // ==========================================================================
   // Отправка / редактирование / ответы
   // ==========================================================================
 
@@ -193,14 +245,14 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
   // Вложения
   // ==========================================================================
 
-  const handleAddAttachments = (files: FileList): void => {
+  const handleAddAttachments = (files: FileList | File[]): void => {
     const maxNew = 10 - pendingAttachments.length;
     if (maxNew <= 0) {
       alert('Максимум 10 файлов на сообщение.');
       return;
     }
 
-    const arr = Array.from(files).slice(0, maxNew);
+    const arr = (Array.isArray(files) ? files : Array.from(files)).slice(0, maxNew);
     void processFiles(arr);
   };
 
@@ -310,7 +362,13 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     chat.type === 'group' ? 'Групповой чат' : chat.isOnline ? 'в сети' : 'не в сети';
 
   return (
-    <div className="chat">
+    <div
+      className={`chat ${isDragging ? 'chat--dragging' : ''}`}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <ChatTopBar
         title={chat.title}
         subtitle={subtitle}
@@ -357,6 +415,12 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
           onRemoveAttachment={handleRemoveAttachment}
         />
       </div>
+
+      {isDragging && (
+        <div className="chat__drop-overlay">
+          <div className="chat__drop-overlay-text">Отпустите, чтобы прикрепить</div>
+        </div>
+      )}
     </div>
   );
 };

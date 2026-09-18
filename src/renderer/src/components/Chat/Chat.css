@@ -102,3 +102,36 @@
   font-size: 0.5rem;
   text-align: center;
 }
+
+/* ---------- Drag & drop overlay ---------- */
+.chat__drop-overlay {
+  position: absolute;
+  inset: 8px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 2px dashed var(--accent-primary);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: chat-drop-fade 0.12s ease-out;
+}
+
+@keyframes chat-drop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat__drop-overlay-text {
+  padding: 48px 16px;
+  background: var(--accent-primary);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

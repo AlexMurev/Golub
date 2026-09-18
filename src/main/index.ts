@@ -11,14 +11,18 @@ import { getAttachmentFullPath } from './files';
 import { runCleanup, shouldRunCleanup } from './filesCleanup';
 import { protocol, app, BrowserWindow, ipcMain, shell } from 'electron';
 import { createReadStream, statSync, existsSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { Readable } from 'stream';
+import { createServer, Server } from 'http';
+import { extname } from 'path';
 import { initUpdater } from './updater';
 
 const windowIcon: string = process.platform === 'win32' ? iconIco : icon;
 
 let cleanupInterval: NodeJS.Timeout | null = null;
+let staticServer: Server | null = null;
+let staticServerUrl: string | null = null;
 
-// Регистрируем привилегированную схему ДО app.whenReady()
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'golub-file',
@@ -32,6 +36,80 @@ protocol.registerSchemesAsPrivileged([
     }
   }
 ]);
+
+// =============================================================================
+// Локальный HTTP-сервер для renderer (нужен для работы YouTube-embed в проде)
+// =============================================================================
+
+const MIME: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.wasm': 'application/wasm',
+  '.mp3': 'audio/mpeg',
+  '.map': 'application/json'
+};
+
+function startStaticServer(): Promise<string> {
+  const rootDir = join(__dirname, '../renderer');
+
+  return new Promise((resolve, reject) => {
+    const server = createServer(async (req, res) => {
+      try {
+        const url = new URL(req.url ?? '/', 'http://localhost');
+        const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
+        const safePath = pathname.replace(/\.\./g, '').replace(/^\/+/, '');
+        const filePath = join(rootDir, safePath);
+
+        try {
+          const data = await readFile(filePath);
+          const ext = extname(filePath).toLowerCase();
+          res.setHeader('Content-Type', MIME[ext] ?? 'application/octet-stream');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(data);
+        } catch {
+          // SPA fallback
+          const data = await readFile(join(rootDir, 'index.html'));
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.end(data);
+        }
+      } catch (err) {
+        console.error('Static server error:', err);
+        res.statusCode = 500;
+        res.end('Server error');
+      }
+    });
+
+    server.on('error', reject);
+
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address();
+      if (typeof addr === 'object' && addr) {
+        staticServer = server;
+        staticServerUrl = `http://127.0.0.1:${addr.port}`;
+        console.log(`Static server on ${staticServerUrl}`);
+        resolve(staticServerUrl);
+      } else {
+        reject(new Error('Failed to start static server'));
+      }
+    });
+  });
+}
+
+// =============================================================================
+// Window
+// =============================================================================
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -77,6 +155,8 @@ function createWindow(): void {
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+  } else if (staticServerUrl) {
+    mainWindow.loadURL(staticServerUrl);
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
@@ -85,14 +165,16 @@ function createWindow(): void {
   initIpc(mainWindow);
 }
 
+// =============================================================================
+// Bootstrap
+// =============================================================================
+
 app.whenReady().then(async (): Promise<void> => {
   electronApp.setAppUserModelId('com.alexmurev.golub');
 
   initDb();
   ensureSelfUser();
 
-  // Обработчик кастомного протокола golub-file://<attachmentId>
-  // Отдаёт файл с диска с поддержкой Range-запросов (важно для видео).
   protocol.handle('golub-file', async (request) => {
     try {
       const url = new URL(request.url);
@@ -104,7 +186,6 @@ app.whenReady().then(async (): Promise<void> => {
 
       const fullPath = getAttachmentFullPath(att.filePath);
       if (!existsSync(fullPath)) {
-        // Файл пропал с диска — синхронизируем БД
         markFileDeleted(att.id);
         return new Response(null, { status: 404 });
       }
@@ -165,6 +246,16 @@ app.whenReady().then(async (): Promise<void> => {
     }
   });
 
+  // В проде поднимаем локальный HTTP-сервер до создания окна.
+  // Это даёт странице нормальный origin, без которого YouTube-embed не работает.
+  if (!(is.dev && process.env['ELECTRON_RENDERER_URL'])) {
+    try {
+      await startStaticServer();
+    } catch (err) {
+      console.error('Failed to start static server:', err);
+    }
+  }
+
   app.on('browser-window-created', (_, window: BrowserWindow): void => {
     optimizer.watchWindowShortcuts(window);
   });
@@ -180,13 +271,10 @@ app.whenReady().then(async (): Promise<void> => {
     console.error('Failed to start transport:', err);
   }
 
-  // Автоочистка файлов: первый запуск через 30 секунд после старта,
-  // затем раз в сутки. Сработает только если в настройках включено.
   setTimeout((): void => {
     if (shouldRunCleanup()) runCleanup();
   }, 30_000);
 
-  // Раз в час проверяем, не прошло ли 24 часа с последней очистки
   cleanupInterval = setInterval(
     (): void => {
       if (shouldRunCleanup()) runCleanup();
@@ -203,6 +291,10 @@ app.on('will-quit', (): void => {
   if (cleanupInterval) {
     clearInterval(cleanupInterval);
     cleanupInterval = null;
+  }
+  if (staticServer) {
+    staticServer.close();
+    staticServer = null;
   }
   stopTransport();
   closeDb();
