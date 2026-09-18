@@ -1,0 +1,209 @@
+.blackjack {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background-image: var(--blackjack-table-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.7);
+  font-family: 'Lexend Exa', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.blackjack__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.blackjack__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Карта ---------- */
+.blackjack__card {
+  flex: 0 0 auto;
+  width: 170px;
+  height: 280px;
+  margin: 10px;
+  padding: 0.5em 1.5em;
+  background: rgb(230, 230, 230);
+  border-radius: 15px;
+  box-shadow: 0 1px 10px rgb(0, 0, 0);
+  cursor: default;
+}
+
+.blackjack__card--hidden {
+  width: 160px;
+  background-image: linear-gradient(
+    176deg,
+    #ffffff 8.33%,
+    #ff0000 8.33%,
+    #ff0000 50%,
+    #ffffff 50%,
+    #ffffff 58.33%,
+    #ff0000 58.33%,
+    #ff0000 100%
+  );
+  background-size: 60px 4.2px;
+  border: 5px solid white;
+}
+
+.blackjack__card-color--black {
+  color: black;
+}
+
+.blackjack__card-color--red {
+  color: red;
+}
+
+.blackjack__card-value {
+  font-size: 4rem;
+}
+
+.blackjack__card-suit {
+  font-size: 6rem;
+  text-align: center;
+}
+
+/* ---------- Управление ---------- */
+.blackjack__controls {
+  display: flex;
+  justify-content: center;
+  margin: 0.5em 1em 1em;
+}
+
+.blackjack__bet {
+  display: flex;
+  align-items: center;
+  width: 40%;
+  margin: 0 0.5em;
+  padding: 0 1em;
+  background: black;
+  border: 5px solid white;
+  border-radius: 15px;
+  box-shadow: 0 1px 10px rgb(0, 0, 0);
+  color: white;
+}
+
+.blackjack__input {
+  flex-grow: 1;
+  width: 1px;
+  margin: 5px;
+  padding: 0;
+  background: black;
+  border: 0;
+  outline: 0;
+  color: white;
+  font-size: 2rem;
+  text-align: right;
+}
+
+.blackjack__input--error {
+  color: red;
+}
+
+.blackjack__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.blackjack__button {
+  width: 30%;
+  margin: 0 0.5em;
+  padding: 1em;
+  background: black;
+  border: 5px solid white;
+  border-radius: 15px;
+  box-shadow: 0 1px 10px rgb(0, 0, 0);
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+}
+
+.blackjack__button:hover {
+  background: white;
+  border: 5px solid black;
+  color: black;
+}
+
+.blackjack__button:disabled {
+  background: rgb(60, 60, 60);
+  border: 5px solid gray;
+  color: gray;
+}
+
+/* ---------- Рука ---------- */
+.blackjack__hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5em;
+  color: white;
+}
+
+.blackjack__hand-title {
+  text-align: center;
+}
+
+.blackjack__hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ---------- Статус ---------- */
+.blackjack__status {
+  display: flex;
+  justify-content: center;
+}
+
+.blackjack__status-block,
+.blackjack__status-balance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  background: black;
+  border: 5px solid white;
+  border-radius: 15px;
+  box-shadow: 0 1px 10px rgb(0, 0, 0);
+}
+
+.blackjack__status-block {
+  width: 60%;
+  margin: 0.5em 0.5em 0.5em 1em;
+}
+
+.blackjack__status-balance {
+  width: 30%;
+  margin: 0.5em 1em 0.5em 0.5em;
+}
+
+.blackjack__status-value {
+  color: white;
+  text-align: center;
+}

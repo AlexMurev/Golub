@@ -134,5 +134,21 @@ export const migrations: Migration[] = [
     id: 5,
     name: 'attachment_file_deleted_at',
     sql: `ALTER TABLE attachments ADD COLUMN fileDeletedAt INTEGER;`
+  },
+  {
+    id: 6,
+    name: 'reactions_v2',
+    sql: `
+      ALTER TABLE reactions RENAME COLUMN emoji TO dataUrl;
+      ALTER TABLE reactions ADD COLUMN name TEXT;
+
+      CREATE TABLE myReactions (
+        id TEXT PRIMARY KEY,
+        dataUrl TEXT NOT NULL,
+        name TEXT NOT NULL,
+        orderIndex INTEGER NOT NULL DEFAULT 0,
+        createdAt INTEGER NOT NULL
+      );
+    `
   }
 ];

@@ -155,7 +155,18 @@ const api = {
       };
     }
   },
-
+  reactions: {
+    list: () => ipcRenderer.invoke('reactions:list'),
+    getQuick: () => ipcRenderer.invoke('reactions:getQuick'),
+    setQuick: (quick: { name: string; dataUrl: string }[]) =>
+      ipcRenderer.invoke('reactions:setQuick', quick),
+    set: (messageId: string, reaction: { dataUrl: string; name: string }) =>
+      ipcRenderer.invoke('reactions:set', messageId, reaction),
+    remove: (messageId: string) => ipcRenderer.invoke('reactions:remove', messageId),
+    addCustom: (payload: { dataUrl: string; name: string }) =>
+      ipcRenderer.invoke('reactions:addCustom', payload),
+    removeCustom: (id: string) => ipcRenderer.invoke('reactions:removeCustom', id)
+  },
   db: {
     users: {
       getSelf: () => ipcRenderer.invoke('users:getSelf'),

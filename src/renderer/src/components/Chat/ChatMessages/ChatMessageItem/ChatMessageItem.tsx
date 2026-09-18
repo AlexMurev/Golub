@@ -3,11 +3,14 @@ import ReactPlayer from 'react-player';
 import type { Message } from '@shared/types';
 import { formatFullDate, formatShortTime } from '@renderer/utils/dateUtils';
 import { openImage } from '@renderer/utils/imageViewer';
-import ReplyIcon from '@renderer/assets/reply.svg?react';
+import { useQuickReactions } from '@renderer/hooks/useQuickReactions';
+import { ContextMenu } from '@renderer/components/ContextMenu/ContextMenu';
 import { MarkDownText } from '../../../MarkDownText/MarkDownText';
 import { LinkPreview } from './LinkPreview/LinkPreview';
 import { AttachmentCard } from './AttachmentCard/AttachmentCard';
 import { MessageStatus } from './MessageStatus/MessageStatus';
+import { ReactionBar } from './Reactions/ReactionBar';
+import { MessageToolbar } from './MessageToolbar/MessageToolbar';
 import './ChatMessageItem.css';
 
 interface ChatMessageItemProps {
@@ -21,6 +24,17 @@ interface ChatMessageItemProps {
   onJumpToMessage: (targetId: string) => void;
   onSubmitEdit: (id: string, text: string) => void;
   onCancelEdit: () => void;
+  onSetReaction: (messageId: string, name: string, dataUrl: string) => void;
+  onRemoveReaction: (messageId: string) => void;
+  onSaveReactionToMy: (name: string, dataUrl: string) => void;
+  onOpenReactionPicker: (messageId: string, x: number, y: number) => void;
+}
+
+interface ChipMenuState {
+  x: number;
+  y: number;
+  name: string;
+  dataUrl: string;
 }
 
 function extractFirstUrl(text: string): string | null {
@@ -43,11 +57,17 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
     onReply,
     onJumpToMessage,
     onSubmitEdit,
-    onCancelEdit
+    onCancelEdit,
+    onSetReaction,
+    onRemoveReaction,
+    onSaveReactionToMy,
+    onOpenReactionPicker
   }): React.JSX.Element | null => {
     const [editText, setEditText] = useState<string>(msg.text);
     const [prevIsEditing, setPrevIsEditing] = useState<boolean>(isEditing);
+    const [chipMenu, setChipMenu] = useState<ChipMenuState | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const quickReactions = useQuickReactions();
 
     if (isEditing !== prevIsEditing) {
       setPrevIsEditing(isEditing);
@@ -63,6 +83,20 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
       el.style.height = 'auto';
       el.style.height = `${el.scrollHeight}px`;
     }, [isEditing]);
+
+    // Закрытие chip-меню по клику снаружи.
+    // Слушаем именно click: mousedown закрывал бы меню до того, как сработает onClick пункта.
+    useEffect(() => {
+      if (!chipMenu) return;
+      const close = (): void => setChipMenu(null);
+      const t = setTimeout(() => {
+        window.addEventListener('click', close);
+      }, 0);
+      return (): void => {
+        clearTimeout(t);
+        window.removeEventListener('click', close);
+      };
+    }, [chipMenu]);
 
     if (msg.deletedAt) return null;
 
@@ -98,6 +132,35 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
       }
     };
 
+    const handleToggleReaction = (name: string, dataUrl: string, isMine: boolean): void => {
+      if (isMine) {
+        onRemoveReaction(msg.id);
+      } else {
+        onSetReaction(msg.id, name, dataUrl);
+      }
+    };
+
+    const handleChipContextMenu = (
+      e: React.MouseEvent,
+      name: string,
+      dataUrl: string,
+      isMine: boolean
+    ): void => {
+      // Свою реакцию убираем кликом — контекстное меню не открываем.
+      if (isMine) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setChipMenu({ x: e.clientX, y: e.clientY, name, dataUrl });
+    };
+
+    const handleSaveReaction = (): void => {
+      if (!chipMenu) return;
+      onSaveReactionToMy(chipMenu.name, chipMenu.dataUrl);
+    };
+
+    const isQuickMine = (name: string): boolean =>
+      msg.reactions.some((r) => r.peerId === myId && r.name === name);
+
     return (
       <div
         id={`msg-${msg.id}`}
@@ -118,13 +181,16 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
         </div>
 
         <div className="message">
-          <button
-            className="message__reply-btn"
-            onClick={(): void => onReply(msg)}
-            title="Ответить"
-          >
-            <ReplyIcon />
-          </button>
+          {!isEditing && (
+            <MessageToolbar
+              messageId={msg.id}
+              quickReactions={quickReactions}
+              isQuickMine={isQuickMine}
+              onToggleReaction={handleToggleReaction}
+              onOpenPicker={onOpenReactionPicker}
+              onReply={(): void => onReply(msg)}
+            />
+          )}
 
           {msg.replyTo && (
             <div
@@ -213,7 +279,30 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(
           )}
 
           {!isEditing && !isVideo && firstUrl && isUrlOnly && <LinkPreview url={firstUrl} />}
+
+          {!isEditing && msg.reactions.length > 0 && (
+            <ReactionBar
+              reactions={msg.reactions}
+              myId={myId}
+              onToggle={handleToggleReaction}
+              onChipContextMenu={handleChipContextMenu}
+            />
+          )}
         </div>
+
+        {chipMenu && (
+          <ContextMenu
+            x={chipMenu.x}
+            y={chipMenu.y}
+            items={[
+              {
+                label: 'Сохранить в мои реакции',
+                onClick: handleSaveReaction
+              }
+            ]}
+            onClose={(): void => setChipMenu(null)}
+          />
+        )}
       </div>
     );
   }

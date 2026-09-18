@@ -14,6 +14,7 @@ import {
 } from '@renderer/utils/imageCompression';
 import type { Attachment, Message, ChatListItem, ReplyPreview } from '@shared/types';
 import type { PendingAttachment } from './ChatInput/AttachmentPreview/AttachmentPreview';
+import { ReactionPicker } from './ChatMessages/ChatMessageItem/Reactions/ReactionPicker';
 import './Chat.css';
 
 interface ChatProps {
@@ -358,12 +359,39 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
     setPendingAttachments((prev) => prev.filter((p) => p.attachment.id !== id));
   };
 
+  const handleSetReaction = useCallback(
+    async (messageId: string, name: string, dataUrl: string): Promise<void> => {
+      await window.api.reactions.set(messageId, { name, dataUrl });
+    },
+    []
+  );
+
+  const handleRemoveReaction = useCallback(async (messageId: string): Promise<void> => {
+    await window.api.reactions.remove(messageId);
+  }, []);
+
+  const handleSaveReactionToMy = useCallback(
+    async (name: string, dataUrl: string): Promise<void> => {
+      await window.api.reactions.addCustom({ name, dataUrl });
+    },
+    []
+  );
+
+  const [pickerState, setPickerState] = useState<{
+    messageId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const handleOpenReactionPicker = useCallback((messageId: string, x: number, y: number): void => {
+    setPickerState({ messageId, x, y });
+  }, []);
+
   const subtitle: string =
     chat.type === 'group' ? 'Групповой чат' : chat.isOnline ? 'в сети' : 'не в сети';
 
   return (
     <div
-      className={`chat ${isDragging ? 'chat--dragging' : ''}`}
+      className="chat"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -397,6 +425,10 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         onSubmitEdit={handleSubmitEdit}
         onCancelEdit={handleCancelEdit}
         onDelete={deleteMessage}
+        onSetReaction={handleSetReaction}
+        onRemoveReaction={handleRemoveReaction}
+        onSaveReactionToMy={handleSaveReactionToMy}
+        onOpenReactionPicker={handleOpenReactionPicker}
       />
 
       <div className="chat__bottom" ref={bottomRef}>
@@ -420,6 +452,17 @@ const Chat: React.FC<ChatProps> = ({ chat, onOpenContact }): React.JSX.Element =
         <div className="chat__drop-overlay">
           <div className="chat__drop-overlay-text">Отпустите, чтобы прикрепить</div>
         </div>
+      )}
+
+      {pickerState && (
+        <ReactionPicker
+          anchor={{ x: pickerState.x, y: pickerState.y }}
+          onSelect={(name, dataUrl): void => {
+            void window.api.reactions.set(pickerState.messageId, { name, dataUrl });
+            setPickerState(null);
+          }}
+          onClose={(): void => setPickerState(null)}
+        />
       )}
     </div>
   );

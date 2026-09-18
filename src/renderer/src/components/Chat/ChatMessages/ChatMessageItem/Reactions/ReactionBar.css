@@ -1,0 +1,98 @@
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.reaction-chip-wrapper {
+  position: relative;
+}
+
+/* ---------- Чип реакции ---------- */
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.reaction-chip:hover {
+  background: var(--bg-elevated);
+}
+
+.reaction-chip:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.reaction-chip--mine {
+  background: var(--bg-elevated);
+}
+
+.reaction-chip--mine:hover {
+  background: var(--bg-elevated);
+}
+
+.reaction-chip__icon {
+  display: block;
+  width: 0.9rem;
+  height: 0.9rem;
+  object-fit: contain;
+}
+
+.reaction-chip__count {
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
+.reaction-chip--mine .reaction-chip__count {
+  color: var(--text-primary);
+}
+
+/* ---------- Тултип со списком поставивших ---------- */
+.reaction-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.55rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  animation: reaction-tooltip-fade 0.1s ease-out;
+}
+
+@keyframes reaction-tooltip-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reaction-tooltip__names {
+  font-weight: 600;
+}
+
+.reaction-tooltip__rest,
+.reaction-tooltip__suffix {
+  color: var(--text-secondary);
+}

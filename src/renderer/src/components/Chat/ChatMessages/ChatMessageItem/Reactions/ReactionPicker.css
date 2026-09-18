@@ -1,0 +1,211 @@
+.reaction-picker {
+  position: fixed;
+  z-index: 500;
+  padding: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: reaction-picker-fade 0.1s ease-out;
+}
+
+@keyframes reaction-picker-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Сетка эмодзи ---------- */
+.reaction-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  max-width: 282px;
+}
+
+.reaction-picker__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.reaction-picker__item:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--bg-elevated);
+}
+
+.reaction-picker__item:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.reaction-picker__item img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.reaction-picker__item--add {
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  font-weight: 300;
+}
+
+.reaction-picker__item--add:hover {
+  color: var(--text-primary);
+}
+
+/* ---------- Подтверждение удаления ---------- */
+.reaction-picker__confirm {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-deep);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.55rem;
+  animation: reaction-picker-fade 0.1s ease-out;
+}
+
+.reaction-picker__confirm-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.reaction-picker__confirm-btn {
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.55rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.reaction-picker__confirm-btn:hover {
+  background: var(--bg-elevated);
+}
+
+.reaction-picker__confirm-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.reaction-picker__confirm-btn--danger {
+  background: var(--accent-danger);
+}
+
+.reaction-picker__confirm-btn--danger:hover {
+  background: var(--accent-danger-hover);
+}
+
+/* ---------- Модалка (наследует .modal из Modal.css) ---------- */
+.reaction-picker-modal {
+  width: 320px;
+  max-width: 90vw;
+  gap: 12px;
+  padding: 16px;
+}
+
+.reaction-picker-modal__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+}
+
+.reaction-picker-modal__preview img {
+  max-width: 80px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+.reaction-picker-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reaction-picker-modal__label {
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.reaction-picker-modal__input {
+  padding: 8px 10px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.7rem;
+  outline: none;
+  transition: background var(--transition-fast);
+}
+
+.reaction-picker-modal__input:focus {
+  background: var(--bg-elevated);
+}
+
+.reaction-picker-modal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reaction-picker-modal__btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.reaction-picker-modal__btn:hover {
+  background: var(--bg-elevated);
+}
+
+.reaction-picker-modal__btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.reaction-picker-modal__btn--primary {
+  background: var(--accent-primary);
+}
+
+.reaction-picker-modal__btn--primary:hover {
+  background: var(--accent-primary-hover);
+}

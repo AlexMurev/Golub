@@ -128,6 +128,11 @@
   font-size: 0.5rem;
 }
 
+.settings-tab__version--golub {
+  cursor: pointer;
+  user-select: none;
+}
+
 .settings-tab__version-name {
   color: var(--text-secondary);
   font-weight: 600;

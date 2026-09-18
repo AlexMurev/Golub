@@ -1,0 +1,41 @@
+.message-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius);
+}
+
+.message-toolbar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.message-toolbar__btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.message-toolbar__btn--active {
+  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  color: var(--accent-primary);
+}
+
+.message-toolbar__img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}

@@ -8,6 +8,7 @@ import { registerSoundsIpc } from './sounds';
 import { registerAppIpc } from './app';
 import { registerFilesIpc } from './files';
 import { registerTransferIpc } from './transfer';
+import { registerReactionsIpc } from './reactions';
 
 export function initIpc(mainWindow: BrowserWindow): void {
   const ctx = createContext(mainWindow);
@@ -18,6 +19,7 @@ export function initIpc(mainWindow: BrowserWindow): void {
   registerUsersIpc(ctx);
   registerChatsIpc(ctx);
   registerMessagesIpc(ctx);
+  registerReactionsIpc(ctx);
   registerSoundsIpc(ctx);
   registerTransferIpc(ctx);
   registerFilesIpc(ctx);

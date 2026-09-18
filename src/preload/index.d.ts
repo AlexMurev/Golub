@@ -1,5 +1,13 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
-import type { UpdateStatus, User, ChatListItem, Message, SoundData } from '@shared/types';
+import type {
+  UpdateStatus,
+  User,
+  ChatListItem,
+  Message,
+  SoundData,
+  MyReaction,
+  Attachment
+} from '@shared/types';
 
 interface API {
   setTitlebarColor: (color: string) => void;
@@ -113,7 +121,21 @@ interface API {
     onTyping: (cb: (peerId: string, isTyping: boolean) => void) => () => void;
     onFriendRequest: (cb: (peerId: string) => void) => () => void;
   };
-
+  reactions: {
+    list: () => Promise<MyReaction[]>;
+    getQuick: () => Promise<{ name: string; dataUrl: string }[]>;
+    setQuick: (quick: { name: string; dataUrl: string }[]) => Promise<{ success: boolean }>;
+    set: (
+      messageId: string,
+      reaction: { dataUrl: string; name: string }
+    ) => Promise<{ success: boolean }>;
+    remove: (messageId: string) => Promise<{ success: boolean }>;
+    addCustom: (payload: {
+      dataUrl: string;
+      name: string;
+    }) => Promise<{ success: boolean; reaction?: MyReaction; error?: string }>;
+    removeCustom: (id: string) => Promise<{ success: boolean }>;
+  };
   db: {
     users: {
       getSelf: () => Promise<User | null>;

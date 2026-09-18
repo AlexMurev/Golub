@@ -42,6 +42,7 @@ import {
 import { handleIncoming, retryPendingForPeer } from '../transfer/manager';
 import { deleteAttachmentFile } from '../files';
 import { getSetting } from '../db/repositories/settingsRepo';
+import { removeReaction, setReaction } from '../db/repositories/reactionsRepo';
 
 export function registerTransportIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -126,6 +127,34 @@ export function registerTransportIpc(ctx: IpcContext): void {
     if (p.type === 'message-read' && p.payload) {
       const { chatId } = p.payload as { chatId: string };
       markSentMessagesAsRead(chatId, self.peerId);
+      ctx.send('transport:message', from, payload);
+      return;
+    }
+    if (p.type === 'reaction-set' && p.payload) {
+      const { messageId, dataUrl, name, createdAt } = p.payload as {
+        messageId: string;
+        dataUrl: string;
+        name: string;
+        createdAt: number;
+      };
+
+      const msg = getMessage(messageId);
+      if (msg) {
+        setReaction({
+          messageId,
+          peerId: from,
+          dataUrl,
+          name,
+          createdAt
+        });
+        ctx.send('transport:message', from, payload);
+      }
+      return;
+    }
+
+    if (p.type === 'reaction-remove' && p.payload) {
+      const { messageId } = p.payload as { messageId: string };
+      removeReaction(messageId, from);
       ctx.send('transport:message', from, payload);
       return;
     }

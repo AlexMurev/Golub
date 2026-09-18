@@ -66,6 +66,7 @@ export interface Message {
   deletedAt: number | null;
   status: MessageStatus | null;
   attachments: Attachment[];
+  reactions: Reaction[];
 }
 
 export interface ChatListItem {
@@ -102,8 +103,17 @@ export interface Attachment {
 export interface Reaction {
   messageId: string;
   peerId: string;
-  emoji: string;
+  dataUrl: string;
+  name: string;
   createdAt: number | null;
+}
+
+export interface MyReaction {
+  id: string;
+  dataUrl: string;
+  name: string;
+  orderIndex: number;
+  createdAt: number;
 }
 
 export interface SoundData {

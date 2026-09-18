@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import tableBg from '@renderer/assets/blackjack.jpg';
+import './BlackJack.css';
 
 const jsonData = {
   cards: [
@@ -68,88 +69,26 @@ type CardProps = {
 };
 
 const Card: React.FC<CardProps> = ({ value, suit, hidden }) => {
-  const getColor = () => {
-    if (suit === '♠' || suit === '♣') return 'black';
-    return 'red';
+  const getColor = (): string => {
+    if (suit === '♠' || suit === '♣') return 'blackjack__card-color--black';
+    return 'blackjack__card-color--red';
   };
 
   const getCard = () => {
     if (hidden) {
-      return <div className="card-hidden" />;
+      return <div className="blackjack__card blackjack__card--hidden" />;
     }
     return (
-      <div className="card">
-        <div className={getColor()}>
-          <h1 className="card-value">{value}</h1>
-          <h1 className="card-suit">{suit}</h1>
+      <div className="blackjack__card">
+        <div className={`blackjack__card-color ${getColor()}`}>
+          <h1 className="blackjack__card-value">{value}</h1>
+          <h1 className="blackjack__card-suit">{suit}</h1>
         </div>
       </div>
     );
   };
 
-  return (
-    <>
-      {getCard()}
-      <style>{`
-        .card {
-          flex: 0 0 auto;
-          width: 170px;
-          height: 280px;
-          margin: 10px;
-          padding: 0.5em 1.5em;
-          background: rgb(230, 230, 230);
-          border-radius: 15px;
-          box-shadow: 0px 1px 10px rgb(0, 0, 0);
-          cursor: default;
-        }
-        .card-hidden {
-          flex: 0 0 auto;
-          width: 160px;
-          height: 280px;
-          margin: 10px;
-          padding: 0.5em 1.5em;
-          background-image: linear-gradient(176deg, #ffffff 8.33%, #ff0000 8.33%, #ff0000 50%, #ffffff 50%, #ffffff 58.33%, #ff0000 58.33%, #ff0000 100%);
-          background-size: 60px 4.2px;
-          border: 5px solid white;
-          border-radius: 15px;
-          box-shadow: 0px 1px 10px rgb(0, 0, 0);
-          cursor: default;
-        }
-        .black { color: black; }
-        .red { color: red; }
-        .card-value {
-          font-size: 400%;
-          margin: 0;
-        }
-        .card-suit {
-          font-size: 600%;
-          margin: 0;
-          text-align: center;
-        }
-        @media screen and (max-width: 992px) {
-          .card { width: 70px; height: 180px; }
-          .card-hidden { width: 60px; height: 170px; }
-          .card-value { font-size: 300%; }
-          .card-suit { font-size: 500%; }
-        }
-        @media screen and (max-width: 600px) {
-          .card {
-            width: 45px;
-            height: 100px;
-            padding: 5px 10px;
-          }
-          .card-hidden {
-            width: 41px;
-            height: 96px;
-            padding: 5px 10px;
-            border: 2px solid white;
-          }
-          .card-value { font-size: 150%; }
-          .card-suit { font-size: 250%; }
-        }
-      `}</style>
-    </>
-  );
+  return getCard();
 };
 
 type ControlsProps = {
@@ -172,22 +111,18 @@ const Controls: React.FC<ControlsProps> = ({
   resetEvent
 }) => {
   const [amount, setAmount] = useState(10);
-  const [inputStyle, setInputStyle] = useState('controls-input');
+  const [hasInputError, setHasInputError] = useState(false);
 
   useEffect(() => {
     validation();
   }, [amount, balance]);
 
-  const validation = () => {
-    if (amount > balance) {
-      setInputStyle('controls-input-error');
+  const validation = (): boolean => {
+    if (amount > balance || amount < 0.01) {
+      setHasInputError(true);
       return false;
     }
-    if (amount < 0.01) {
-      setInputStyle('controls-input-error');
-      return false;
-    }
-    setInputStyle('controls-input');
+    setHasInputError(false);
     return true;
   };
 
@@ -204,43 +139,43 @@ const Controls: React.FC<ControlsProps> = ({
   const getControls = () => {
     if (gameState === 0) {
       return (
-        <div className="controls-container">
-          <div className="controls-bet-container">
+        <div className="blackjack__controls">
+          <div className="blackjack__bet">
             <h4>Amount:</h4>
             <input
               autoFocus
               type="number"
               value={amount}
               onChange={amountChange}
-              className={inputStyle}
+              className={`blackjack__input${hasInputError ? ' blackjack__input--error' : ''}`}
             />
           </div>
-          <button onClick={() => onBetClick()} className="controls-button">
+          <button onClick={() => onBetClick()} className="blackjack__button">
             Bet
           </button>
         </div>
       );
     } else {
       return (
-        <div className="controls-container">
+        <div className="blackjack__controls">
           <button
             onClick={() => hitEvent()}
             disabled={buttonState.hitDisabled}
-            className="controls-button"
+            className="blackjack__button"
           >
             Hit
           </button>
           <button
             onClick={() => standEvent()}
             disabled={buttonState.standDisabled}
-            className="controls-button"
+            className="blackjack__button"
           >
             Stand
           </button>
           <button
             onClick={() => resetEvent()}
             disabled={buttonState.resetDisabled}
-            className="controls-button"
+            className="blackjack__button"
           >
             Reset
           </button>
@@ -249,93 +184,7 @@ const Controls: React.FC<ControlsProps> = ({
     }
   };
 
-  return (
-    <>
-      {getControls()}
-      <style>{`
-        .controls-container {
-          display: flex;
-          justify-content: center;
-          margin: 0.5em 1em 1em 1em;
-        }
-        .controls-bet-container {
-          display: flex;
-          align-items: center;
-          color: white;
-          margin: 0 0.5em;
-          padding: 0 1em;
-          width: 40%;
-          background: black;
-          border: 5px solid white;
-          border-radius: 15px;
-          box-shadow: 0px 1px 10px rgb(0, 0, 0);
-        }
-        .controls-input,
-        .controls-input-error {
-          width: 1px;
-          flex-grow: 1;
-          font-size: 200%;
-          text-align: right;
-          margin: 5px;
-          padding: 0;
-          border: 0;
-          outline: 0;
-          background: black;
-          color: white;
-        }
-        .controls-input-error {
-          color: red;
-        }
-        .controls-input::-webkit-inner-spin-button,
-        .controls-input-error::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        .controls-button {
-          color: white;
-          font-weight: bold;
-          margin: 0 0.5em;
-          padding: 1em;
-          width: 30%;
-          background: black;
-          outline: none;
-          border: 5px solid white;
-          border-radius: 15px;
-          box-shadow: 0px 1px 10px rgb(0, 0, 0);
-          text-align: center;
-          cursor: pointer;
-        }
-        @media (hover: hover) {
-          .controls-button:hover {
-            color: black;
-            background: white;
-            border: 5px solid black;
-          }
-        }
-        .controls-button:disabled {
-          color: gray;
-          background: rgb(60, 60, 60);
-          border: 5px solid gray;
-        }
-        @media screen and (max-width: 992px) {
-          .controls-bet-container {
-            width: 50%;
-          }
-        }
-        @media screen and (max-width: 600px) {
-          .controls-bet-container {
-            width: 70%;
-          }
-          .controls-bet-container h4 {
-            font-size: 75%;
-          }
-          .controls-bet-container input {
-            font-size: 125%;
-          }
-        }
-      `}</style>
-    </>
-  );
+  return getControls();
 };
 
 type HandProps = {
@@ -346,42 +195,19 @@ type HandProps = {
 const Hand: React.FC<HandProps> = ({ title, cards }) => {
   const getTitle = () => {
     if (cards.length > 0) {
-      return <h1 className="hand-title">{title}</h1>;
+      return <h1 className="blackjack__hand-title">{title}</h1>;
     }
     return;
   };
 
   return (
-    <div className="hand-container">
+    <div className="blackjack__hand">
       {getTitle()}
-      <div className="hand-card-container">
+      <div className="blackjack__hand-cards">
         {cards.map((card: any, index: number) => {
           return <Card key={index} value={card.value} suit={card.suit} hidden={card.hidden} />;
         })}
       </div>
-      <style>{`
-        .hand-container {
-          color: white;
-          display: flex;
-          align-items: center;
-          flex-direction: column;
-          margin: 0.5em;
-        }
-        .hand-card-container {
-          width: 100%;
-          display: flex;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-        .hand-title {
-          text-align: center;
-        }
-        @media screen and (max-width: 600px) {
-          .hand-title {
-            font-size: 150%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
@@ -393,57 +219,22 @@ type StatusProps = {
 
 const Status: React.FC<StatusProps> = ({ message, balance }) => {
   return (
-    <div className="status-container">
-      <div className="status-block">
-        <h1 className="status-value">{message}</h1>
+    <div className="blackjack__status">
+      <div className="blackjack__status-block">
+        <h1 className="blackjack__status-value">{message}</h1>
       </div>
-      <div className="status-balance">
-        <h1 className="status-value">${balance}</h1>
+      <div className="blackjack__status-balance">
+        <h1 className="blackjack__status-value">${balance}</h1>
       </div>
-      <style>{`
-        .status-container {
-          display: flex;
-          justify-content: center;
-        }
-        .status-block,
-        .status-balance {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1em;
-          background: black;
-          border: 5px solid white;
-          border-radius: 15px;
-          box-shadow: 0px 1px 10px rgb(0, 0, 0);
-        }
-        .status-block {
-          margin: 0.5em 0.5em 0.5em 1em;
-          width: 60%;
-        }
-        .status-balance {
-          margin: 0.5em 1em 0.5em 0.5em;
-          width: 30%;
-        }
-        .status-value {
-          color: white;
-          text-align: center;
-        }
-        @media screen and (max-width: 992px) {
-          .status-value {
-            font-size: 150%;
-          }
-        }
-        @media screen and (max-width: 600px) {
-          .status-value {
-            font-size: 115%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
 
-const BlackJack: React.FC = () => {
+type BlackJackProps = {
+  onClose?: () => void;
+};
+
+const BlackJack: React.FC<BlackJackProps> = ({ onClose }) => {
   enum GameState {
     bet,
     init,
@@ -691,28 +482,15 @@ const BlackJack: React.FC = () => {
   };
 
   return (
-    <div className="blackjack-app">
-      <style>{`
-        :where(.blackjack-app, .blackjack-app *) {
-          margin: 0;
-          padding: 0;
-        }
-        .blackjack-app {
-          width: 100%;
-          background-image: url(${tableBg});
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          min-height: 100vh;
-          min-height: 100vh;
-          text-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.9),
-            0 2px 6px rgba(0, 0, 0, 0.7);
-          font-family: 'Lexend Exa', sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-      `}</style>
+    <div
+      className="blackjack"
+      style={{ '--blackjack-table-bg': `url(${tableBg})` } as React.CSSProperties}
+    >
+      {onClose && (
+        <button type="button" className="blackjack__close" onClick={onClose} title="Закрыть">
+          ×
+        </button>
+      )}
       <Status message={message} balance={balance} />
       <Controls
         balance={balance}

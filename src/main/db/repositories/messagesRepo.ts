@@ -1,6 +1,7 @@
 import { getDb } from '../index';
 import type { Message, MessageStatus } from '@shared/types';
 import { listForMessages } from './attachmentsRepo';
+import { listReactionsForMessages } from './reactionsRepo';
 
 interface MessageRaw {
   id: string;
@@ -49,6 +50,18 @@ function attachAttachments(messages: Message[]): Message[] {
   }));
 }
 
+function attachReactions(messages: Message[]): Message[] {
+  if (messages.length === 0) return messages;
+
+  const ids = messages.map((m) => m.id);
+  const byMessage = listReactionsForMessages(ids);
+
+  return messages.map((m) => ({
+    ...m,
+    reactions: byMessage.get(m.id) ?? []
+  }));
+}
+
 function toMessage(raw: MessageRaw): Message {
   return {
     id: raw.id,
@@ -71,7 +84,8 @@ function toMessage(raw: MessageRaw): Message {
     editedAt: raw.editedAt,
     deletedAt: raw.deletedAt,
     status: raw.status,
-    attachments: []
+    attachments: [],
+    reactions: []
   };
 }
 
@@ -87,14 +101,14 @@ export function listMessages(chatId: string, limit = 200, before?: number): Mess
   ) as MessageRaw[];
 
   const messages = rows.reverse().map(toMessage);
-  return attachAttachments(messages);
+  return attachReactions(attachAttachments(messages));
 }
 
 export function getMessage(id: string): Message | null {
   const row = getDb().prepare(`${SELECT_WITH_JOINS} WHERE m.id = ?`).get(id) as
     MessageRaw | undefined;
   if (!row) return null;
-  const [msg] = attachAttachments([toMessage(row)]);
+  const [msg] = attachReactions(attachAttachments([toMessage(row)]));
   return msg;
 }
 

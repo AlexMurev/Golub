@@ -10,9 +10,6 @@ import EditIcon from '@renderer/assets/edit.svg?react';
 import DeleteIcon from '@renderer/assets/delete.svg?react';
 import './ChatMessages.css';
 
-// Дополнительный зазор между последним сообщением и нижней панелью.
-const BOTTOM_GAP = 0;
-
 interface ChatMessagesProps {
   chatId: string | null;
   messages: Message[];
@@ -29,7 +26,29 @@ interface ChatMessagesProps {
   onSubmitEdit: (id: string, text: string) => void;
   onCancelEdit: () => void;
   onDelete: (messageId: string) => void;
+  onSetReaction: (messageId: string, name: string, dataUrl: string) => void;
+  onRemoveReaction: (messageId: string) => void;
+  onSaveReactionToMy: (name: string, dataUrl: string) => void;
+  onOpenReactionPicker: (messageId: string, x: number, y: number) => void;
 }
+
+const SmileIcon: React.FC = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+    <line x1="9" y1="9" x2="9.01" y2="9" />
+    <line x1="15" y1="9" x2="15.01" y2="9" />
+  </svg>
+);
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
   chatId,
@@ -46,7 +65,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   onStartEdit,
   onSubmitEdit,
   onCancelEdit,
-  onDelete
+  onDelete,
+  onSetReaction,
+  onRemoveReaction,
+  onSaveReactionToMy,
+  onOpenReactionPicker
 }): React.JSX.Element => {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { menuState, handleContextMenu, closeMenu } = useMessageContextMenu();
@@ -68,12 +91,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     }
   }, []);
 
-  const getMenuActions = (msg: Message): ContextMenuItem[] => {
+  const getMenuActions = (msg: Message, x: number, y: number): ContextMenuItem[] => {
     const actions: ContextMenuItem[] = [
       {
         label: 'Ответить',
         onClick: (): void => onReply(msg),
         icon: <ReplyIcon width={20} height={20} />
+      },
+      {
+        label: 'Реакция',
+        onClick: (): void => onOpenReactionPicker(msg.id, x, y),
+        icon: <SmileIcon />
       },
       {
         label: 'Копировать текст',
@@ -98,17 +126,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 
     return actions;
   };
-
-  const components = useMemo(
-    () => ({
-      Header: (): React.JSX.Element | null =>
-        isLoadingOlder ? <div className="chat-messages__loader">Загрузка истории...</div> : null,
-      Footer: (): React.JSX.Element => (
-        <div style={{ height: bottomInset + BOTTOM_GAP }} aria-hidden="true" />
-      )
-    }),
-    [isLoadingOlder, bottomInset]
-  );
 
   if (isLoading || visible.length === 0) {
     return (
@@ -152,10 +169,20 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
               onJumpToMessage={handleJumpToMessage}
               onSubmitEdit={onSubmitEdit}
               onCancelEdit={onCancelEdit}
+              onSetReaction={onSetReaction}
+              onRemoveReaction={onRemoveReaction}
+              onSaveReactionToMy={onSaveReactionToMy}
+              onOpenReactionPicker={onOpenReactionPicker}
             />
           );
         }}
-        components={components}
+        components={{
+          Footer: (): React.JSX.Element => (
+            <div style={{ height: bottomInset }} aria-hidden="true" />
+          ),
+          Header: (): React.JSX.Element | null =>
+            isLoadingOlder ? <div className="chat-messages__loader">Загрузка истории...</div> : null
+        }}
         increaseViewportBy={{ top: 600, bottom: 200 }}
         atBottomThreshold={50}
         className="chat-messages__list"
@@ -165,7 +192,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         <ContextMenu
           x={menuState.x}
           y={menuState.y}
-          items={getMenuActions(menuState.message)}
+          items={getMenuActions(menuState.message, menuState.x, menuState.y)}
           onClose={closeMenu}
         />
       )}
