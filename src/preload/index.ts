@@ -146,6 +146,13 @@ const api = {
       return (): void => {
         ipcRenderer.removeListener('transport:typing', listener);
       };
+    },
+    onFriendRequest: (cb: (peerId: string) => void) => {
+      const listener = (_e: unknown, peerId: string): void => cb(peerId);
+      ipcRenderer.on('transport:friendRequest', listener);
+      return (): void => {
+        ipcRenderer.removeListener('transport:friendRequest', listener);
+      };
     }
   },
 

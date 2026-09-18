@@ -111,6 +111,7 @@ interface API {
       isTyping: boolean
     ) => Promise<{ success: boolean; skipped?: boolean }>;
     onTyping: (cb: (peerId: string, isTyping: boolean) => void) => () => void;
+    onFriendRequest: (cb: (peerId: string) => void) => () => void;
   };
 
   db: {

@@ -84,6 +84,8 @@ export function registerTransportIpc(ctx: IpcContext): void {
 
       setContactStatus(req.peerId, 'pending_incoming');
       ctx.notifyDataChanged();
+      ctx.send('transport:friendRequest', req.peerId);
+      return;
       return;
     }
 

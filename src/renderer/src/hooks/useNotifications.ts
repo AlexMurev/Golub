@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useChats } from './useChats';
 import { useSelf } from './useSelf';
 import { playForPeer } from '@renderer/utils/sounds';
+import * as sounds from '@renderer/utils/sounds';
 import type { Message } from '@shared/types';
 
 export function useNotifications(): void {
@@ -30,6 +31,17 @@ export function useNotifications(): void {
       unsub();
     };
   }, [currentChatId, self]);
+
+  // Входящая заявка в друзья → играем глобальный звук уведомлений
+  useEffect(() => {
+    const unsub = window.api.transport.onFriendRequest((): void => {
+      void sounds.previewGlobal();
+    });
+
+    return (): void => {
+      unsub();
+    };
+  }, []);
 
   // Смена чата → mark read
   useEffect(() => {
