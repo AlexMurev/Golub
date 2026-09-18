@@ -54,7 +54,8 @@ export function registerMessagesIpc(ctx: IpcContext): void {
         editedAt: null,
         deletedAt: null,
         status: 'pending',
-        attachments: []
+        attachments: [],
+        reactions: []
       };
 
       insertMessage(message, replyToId);

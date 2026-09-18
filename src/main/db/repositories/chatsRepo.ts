@@ -148,7 +148,8 @@ export function listChatItems(selfPeerId: string): ChatListItem[] {
           editedAt: r.lastEditedAt,
           deletedAt: r.lastDeletedAt,
           status: r.lastStatus as Message['status'],
-          attachments: []
+          attachments: [],
+          reactions: []
         }
       : null;
 
