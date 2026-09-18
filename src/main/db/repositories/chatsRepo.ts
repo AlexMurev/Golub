@@ -166,3 +166,19 @@ export function listChatItems(selfPeerId: string): ChatListItem[] {
     };
   });
 }
+
+export function deleteChatCompletely(chatId: string): string[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT a.filePath FROM attachments a
+       JOIN messages m ON m.id = a.messageId
+       WHERE m.chatId = ? AND a.filePath IS NOT NULL`
+    )
+    .all(chatId) as { filePath: string }[];
+
+  const filePaths = rows.map((r) => r.filePath);
+
+  getDb().prepare('DELETE FROM chats WHERE id = ?').run(chatId);
+
+  return filePaths;
+}

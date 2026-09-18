@@ -10,9 +10,14 @@ import {
   setContactStatus,
   removeUser
 } from '../db/repositories/usersRepo';
-import { ensureDirectChat } from '../db/repositories/chatsRepo';
+import {
+  deleteChatCompletely,
+  ensureDirectChat,
+  getDirectChatId
+} from '../db/repositories/chatsRepo';
 import { isConnectedTo, sendTo, refreshMyInfo, getMyInfo } from '../transport';
 import type { IpcContext } from './context';
+import { deleteAttachmentFile } from '../files';
 
 export function registerUsersIpc(ctx: IpcContext): void {
   // =========================================================================
@@ -139,8 +144,22 @@ export function registerUsersIpc(ctx: IpcContext): void {
     return { success: true, contact: getUser(peerId) };
   });
 
-  ipcMain.handle('users:remove', (_, peerId: string) => {
+  ipcMain.handle('users:remove', async (_, peerId: string) => {
+    const self = getSelf();
+    if (!self) return { success: false };
+
+    const chatId = getDirectChatId(self.peerId, peerId);
+    const filePaths = deleteChatCompletely(chatId);
+    for (const fp of filePaths) {
+      deleteAttachmentFile(fp);
+    }
+
     removeUser(peerId);
+    ctx.notifyDataChanged();
+
+    // Сообщаем собеседнику, чтобы и у него контакт и чат пропали
+    void sendTo(peerId, { type: 'friend-remove', payload: { peerId: self.peerId } });
+
     return { success: true };
   });
 

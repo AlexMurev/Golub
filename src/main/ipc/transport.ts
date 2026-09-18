@@ -17,7 +17,12 @@ import {
   setContactStatus,
   removeUser
 } from '../db/repositories/usersRepo';
-import { ensureDirectChat, touchChat } from '../db/repositories/chatsRepo';
+import {
+  deleteChatCompletely,
+  ensureDirectChat,
+  getDirectChatId,
+  touchChat
+} from '../db/repositories/chatsRepo';
 import {
   upsertMessage,
   editMessage,
@@ -85,6 +90,17 @@ export function registerTransportIpc(ctx: IpcContext): void {
     if (p.type === 'friend-accept') {
       setContactStatus(from, 'accepted');
       ensureDirectChat(self.peerId, from);
+      ctx.notifyDataChanged();
+      return;
+    }
+
+    if (p.type === 'friend-remove') {
+      const chatId = getDirectChatId(self.peerId, from);
+      const filePaths = deleteChatCompletely(chatId);
+      for (const fp of filePaths) {
+        deleteAttachmentFile(fp);
+      }
+      removeUser(from);
       ctx.notifyDataChanged();
       return;
     }
