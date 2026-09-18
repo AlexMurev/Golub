@@ -13,7 +13,8 @@ interface PendingImage {
   dataUrl: string;
 }
 
-const MAX_BYTES = 200 * 1024;
+const MAX_BYTES = 300 * 1024;
+const MAX_ANIMATED_BYTES = 2 * 1024 * 1024;
 const MAX_DIM = 128;
 
 function readAsDataURL(blob: Blob): Promise<string> {
@@ -45,10 +46,21 @@ async function loadImageFromFile(file: File): Promise<HTMLImageElement> {
 
 async function prepareImage(file: File): Promise<string | null> {
   try {
+    const isAnimated = file.type === 'image/gif' || file.type === 'image/webp';
+
+    // Анимированные форматы — сохраняем как есть.
+    // Если пропустить через canvas, анимация потеряется.
+    if (isAnimated) {
+      if (file.size > MAX_ANIMATED_BYTES) return null;
+      return await readAsDataURL(file);
+    }
+
+    // Маленький растровый файл — оставляем как есть
     if (file.size <= MAX_BYTES) {
       return await readAsDataURL(file);
     }
 
+    // Большой растровый — ресайзим через canvas
     const img = await loadImageFromFile(file);
     let w = img.naturalWidth;
     let h = img.naturalHeight;
@@ -127,7 +139,12 @@ export const ReactionPicker: React.FC<ReactionPickerProps> = ({ anchor, onSelect
 
     const dataUrl = await prepareImage(file);
     if (!dataUrl) {
-      alert('Не удалось подготовить изображение. Попробуйте картинку поменьше.');
+      const isAnimated = file.type === 'image/gif' || file.type === 'image/webp';
+      alert(
+        isAnimated
+          ? 'Анимированные GIF/WebP должны быть не больше 1 МБ.'
+          : 'Не удалось подготовить изображение. Попробуйте картинку поменьше.'
+      );
       return;
     }
 

@@ -69,6 +69,11 @@
   line-height: 1.4;
 }
 
+.message__text {
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
 /* Позиционирование тулбара задаётся родителем (контекст строки сообщения) */
 .message .message-toolbar {
   position: absolute;

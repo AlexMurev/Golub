@@ -4,7 +4,8 @@ import { useContacts } from '@renderer/hooks/useContacts';
 import './ReactionBar.css';
 
 interface ReactionGroup {
-  name: string;
+  key: string; // dataUrl — уникальный идентификатор группы
+  name: string; // имя от первой реакции в группе
   dataUrl: string;
   peerIds: string[];
 }
@@ -23,16 +24,22 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
   onChipContextMenu
 }) => {
   const { accepted } = useContacts();
-  const [hoveredName, setHoveredName] = useState<string | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   const groups = useMemo<ReactionGroup[]>(() => {
     const map = new Map<string, ReactionGroup>();
     for (const r of reactions) {
-      const g = map.get(r.name);
+      // Группируем по dataUrl — две разные реакции с одинаковым именем не склеиваются
+      const g = map.get(r.dataUrl);
       if (g) {
         g.peerIds.push(r.peerId);
       } else {
-        map.set(r.name, { name: r.name, dataUrl: r.dataUrl, peerIds: [r.peerId] });
+        map.set(r.dataUrl, {
+          key: r.dataUrl,
+          name: r.name,
+          dataUrl: r.dataUrl,
+          peerIds: [r.peerId]
+        });
       }
     }
     return Array.from(map.values()).sort((a, b) => {
@@ -54,7 +61,7 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
       {groups.map((g) => {
         const isMine = g.peerIds.includes(myId);
         const showCount = g.peerIds.length > 1;
-        const tooltipVisible = hoveredName === g.name;
+        const tooltipVisible = hoveredKey === g.key;
         const names = g.peerIds.map(getNickname);
         const shownNames = names.slice(0, 3);
         const restCount = names.length - shownNames.length;
@@ -62,10 +69,10 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
 
         return (
           <div
-            key={g.name}
+            key={g.key}
             className="reaction-chip-wrapper"
-            onMouseEnter={(): void => setHoveredName(g.name)}
-            onMouseLeave={(): void => setHoveredName(null)}
+            onMouseEnter={(): void => setHoveredKey(g.key)}
+            onMouseLeave={(): void => setHoveredKey(null)}
           >
             <button
               type="button"

@@ -13,12 +13,12 @@
 .reaction-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 5px;
+  gap: 12px;
+  padding: 5px 8px;
   background: var(--bg-tertiary);
   border: none;
   border-radius: var(--radius);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-family: inherit;
   font-size: 0.7rem;
   font-weight: 600;
@@ -45,8 +45,9 @@
 
 .reaction-chip__icon {
   display: block;
-  width: 0.9rem;
-  height: 0.9rem;
+  height: 1rem;      /* якорь — одинаковая высота у всех чипов */
+  width: auto;          /* ширина подстраивается под пропорции */
+  max-width: 5rem;      /* но не бесконечно, чтобы длинные не растягивали чип */
   object-fit: contain;
 }
 
@@ -56,7 +57,7 @@
 }
 
 .reaction-chip--mine .reaction-chip__count {
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 /* ---------- Тултип со списком поставивших ---------- */
