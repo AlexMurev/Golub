@@ -120,4 +120,26 @@ export function registerAppIpc(ctx: IpcContext): void {
     setSetting('privacy:hideTyping', value ? '1' : '0');
     return { success: true };
   });
+
+  // =========================================================================
+  // Developer mode
+  // =========================================================================
+
+  ipcMain.handle('dev:getEnabled', () => {
+    return getSetting('dev:enabled') === '1';
+  });
+
+  ipcMain.handle('dev:setEnabled', (_, enabled: boolean) => {
+    setSetting('dev:enabled', enabled ? '1' : '0');
+    return { success: true };
+  });
+
+  ipcMain.handle('dev:openDevTools', () => {
+    if (ctx.mainWindow.webContents.isDevToolsOpened()) {
+      ctx.mainWindow.webContents.closeDevTools();
+    } else {
+      ctx.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
+    return { success: true };
+  });
 }

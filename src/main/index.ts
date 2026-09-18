@@ -16,6 +16,7 @@ import { Readable } from 'stream';
 import { createServer, Server } from 'http';
 import { extname } from 'path';
 import { initUpdater } from './updater';
+import { getSetting } from './db/repositories/settingsRepo';
 
 const windowIcon: string = process.platform === 'win32' ? iconIco : icon;
 
@@ -135,6 +136,24 @@ function createWindow(): void {
     }
   });
 
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return;
+
+    const isF12 = input.key === 'F12';
+    const isCtrlShiftI = input.control && input.shift && input.key.toLowerCase() === 'i';
+
+    if (!isF12 && !isCtrlShiftI) return;
+
+    if (getSetting('dev:enabled') !== '1') return;
+
+    event.preventDefault();
+    if (mainWindow.webContents.isDevToolsOpened()) {
+      mainWindow.webContents.closeDevTools();
+    } else {
+      mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
+  });
+
   ipcMain.on('set-titlebar-color', (_event: Electron.IpcMainEvent, color: string): void => {
     mainWindow.setTitleBarOverlay({
       color: color,
@@ -159,6 +178,12 @@ function createWindow(): void {
     mainWindow.loadURL(staticServerUrl);
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+  }
+
+  if (getSetting('dev:enabled') === '1') {
+    mainWindow.webContents.once('did-finish-load', () => {
+      mainWindow.webContents.openDevTools({ mode: 'detach' });
+    });
   }
 
   initUpdater(mainWindow);

@@ -87,6 +87,11 @@ interface API {
     setForPeerVolume: (peerId: string, v: number | null) => Promise<{ success: boolean }>;
     setForPeerMono: (peerId: string, v: boolean | null) => Promise<{ success: boolean }>;
   };
+  dev: {
+    getEnabled: () => Promise<boolean>;
+    setEnabled: (value: boolean) => Promise<{ success: boolean }>;
+    openDevTools: () => Promise<{ success: boolean }>;
+  };
   transport: {
     getMyInfo: () => Promise<{
       peerId: string;

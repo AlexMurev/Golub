@@ -5,6 +5,7 @@ export const SettingsAppTab: React.FC = (): React.JSX.Element => {
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
   const [versions] = useState(window.electron.process.versions);
   const [appVersion, setAppVersion] = useState<string>('—');
+  const [devEnabled, setDevEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     if (window.api && typeof window.api.onUpdateStatus === 'function') {
@@ -31,6 +32,8 @@ export const SettingsAppTab: React.FC = (): React.JSX.Element => {
       .catch((err: unknown): void => {
         console.error('Failed to load app version:', err);
       });
+
+    void window.api.dev.getEnabled().then(setDevEnabled);
   }, []);
 
   const handleUpdateClick = (): void => {
@@ -56,6 +59,19 @@ export const SettingsAppTab: React.FC = (): React.JSX.Element => {
     }
   };
 
+  const handleDevToggle = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.checked;
+    setDevEnabled(value);
+    void window.api.dev.setEnabled(value);
+    if (value) {
+      void window.api.dev.openDevTools();
+    }
+  };
+
+  const handleOpenDevTools = (): void => {
+    void window.api.dev.openDevTools();
+  };
+
   return (
     <div className="settings-tab">
       <section className="settings-tab__section">
@@ -68,6 +84,26 @@ export const SettingsAppTab: React.FC = (): React.JSX.Element => {
             {getUpdateButtonText()}
           </button>
         </div>
+      </section>
+
+      <section className="settings-tab__section">
+        <h3 className="settings-tab__section-title">Разработка</h3>
+        <label className="settings-tab__toggle">
+          <span className="settings-tab__label">Режим разработчика</span>
+          <input type="checkbox" checked={devEnabled} onChange={handleDevToggle} />
+        </label>
+        <span className="settings-tab__hint">
+          Открывает доступ к инструментам разработчика: F12 или Ctrl+Shift+I. При включении DevTools
+          откроется сразу.
+        </span>
+
+        {devEnabled && (
+          <div className="settings-tab__actions" style={{ marginTop: '0.5rem' }}>
+            <button type="button" className="settings-tab__button" onClick={handleOpenDevTools}>
+              Открыть DevTools
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="settings-tab__section">

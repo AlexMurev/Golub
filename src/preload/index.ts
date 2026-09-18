@@ -87,6 +87,11 @@ const api = {
     setForPeerMono: (peerId: string, v: boolean | null) =>
       ipcRenderer.invoke('sounds:setForPeerMono', peerId, v)
   },
+  dev: {
+    getEnabled: () => ipcRenderer.invoke('dev:getEnabled') as Promise<boolean>,
+    setEnabled: (value: boolean) => ipcRenderer.invoke('dev:setEnabled', value),
+    openDevTools: () => ipcRenderer.invoke('dev:openDevTools')
+  },
   transport: {
     getMyInfo: () => ipcRenderer.invoke('transport:getMyInfo'),
     isConnectedTo: (peerId: string) => ipcRenderer.invoke('transport:isConnectedTo', peerId),
